@@ -1,61 +1,1774 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark"><title>Fertilizer · Grow an idea into a plan</title>
-<style>
-:root{--bg:#101411;--panel:#191e1a;--line:#303a31;--text:#e7ece4;--muted:#a3afa2;--green:#b6e38b;--accent:#d2b58a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:#242c24;color:var(--text);padding:9px 14px;border-radius:7px}button:hover{border-color:var(--green)}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--green);color:#17210e;border-color:var(--green);font-weight:650}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:7px;padding:10px;background:#111712;color:var(--text)}textarea{min-height:110px;resize:vertical}input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--green);outline-offset:2px}header{padding:20px 32px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:22px;font-weight:750;letter-spacing:-.6px}.brand span{color:var(--green)}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--green);text-transform:uppercase}.muted,small{color:var(--muted)}.layout{display:grid;grid-template-columns:235px minmax(360px,1fr) minmax(320px,.85fr);max-width:1800px;margin:auto;min-height:calc(100vh - 84px)}aside{padding:26px 20px;border-right:1px solid var(--line)}main{padding:30px}.preview{padding:30px 24px;border-left:1px solid var(--line);background:#141a15}h1{font-size:30px;letter-spacing:-1px;margin:5px 0 8px}h2{font-size:19px;margin:0 0 14px}p{margin:8px 0 18px}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.between{justify-content:space-between}.nav{display:grid;gap:6px;margin:24px 0}.nav button{text-align:left;background:transparent;border-color:transparent}.nav button.active{background:#2b3826;color:var(--green);border-color:#42553a}.card{border:1px solid var(--line);border-radius:10px;padding:16px;margin:18px 0;background:var(--panel)}label{display:block;font-weight:600;margin:20px 0 7px}label small{display:block;font-weight:400;margin:4px 0 8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.65 ui-monospace,monospace;margin:18px 0;max-height:70vh;overflow:auto;color:#c3d0bd}.progress{height:5px;background:var(--line);border-radius:6px;margin:12px 0}.progress div{height:100%;background:var(--green);border-radius:6px}.badge{font-size:12px;color:var(--green);padding:4px 8px;border:1px solid #3d5034;border-radius:20px}.guidance{padding:13px 16px;border-left:3px solid var(--accent);background:#26251e;color:#d5c6ac;margin:20px 0;font-size:13px}.checklist{padding-left:20px;font-size:13px;color:var(--muted)}.checklist li{margin:8px 0}.toolbar{margin:16px 0}.hidden{display:none!important}dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:760px;width:calc(100% - 32px);max-height:90vh;padding:24px}dialog::backdrop{background:#000b}a{color:var(--green)}#status{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2a3627;box-shadow:0 8px 35px #0008;padding:12px 20px;border:1px solid #53634b;border-radius:9px;max-width:90%;z-index:5}#github-result{overflow-wrap:anywhere}.actions{display:grid;gap:8px}.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:1100px){.layout{grid-template-columns:210px 1fr}.preview{grid-column:2;border-left:0;border-top:1px solid var(--line)}}@media(max-width:680px){header{padding:16px;align-items:flex-start}.layout{display:block}aside{border:0;padding:16px}.nav{grid-template-columns:repeat(3,1fr);margin:12px 0}.nav button{font-size:12px;padding:8px}main,.preview{padding:20px}.split{grid-template-columns:1fr}h1{font-size:26px}}
-</style></head><body>
-<header><div><div class="brand"><span>✳</span> Fertilizer</div><small>Good ideas deserve a clear plan.</small></div><div class="row"><span id="save-state" class="muted" role="status">Saved locally</span><button id="github-open">GitHub ↗</button></div></header>
-<div class="layout"><aside><div class="eyebrow">Your workspace</div><label for="project-list">Project</label><select id="project-list"></select><div class="row toolbar"><button id="new-project">+ New</button><button id="example">Example</button></div><nav class="nav" aria-label="Specification sections" id="nav"></nav><div class="card"><div class="row between"><strong>Coverage</strong><span id="score" class="badge"></span></div><div class="progress"><div id="progress"></div></div><small>Filled fields show coverage. Review the questions before handing off.</small></div><div class="actions"><button id="export-json">Back up project</button><button id="import-json">Import project</button><button id="delete-project">Delete project</button></div><input id="import-file" type="file" accept=".json,application/json" hidden></aside>
-<main><div class="eyebrow" id="step"></div><h1 id="section-title"></h1><p class="muted" id="section-description"></p><div id="fields"></div><div class="guidance" id="section-guide"></div><div class="row between toolbar"><button id="previous">← Previous</button><button class="primary" id="next">Next →</button></div><div class="card"><h2>Before you hand this off</h2><ul class="checklist" id="questions"></ul><button id="discovery">Copy discovery prompt</button></div></main>
-<section class="preview" aria-label="Live export preview"><div class="row between"><div><div class="eyebrow">Agent package</div><h2 style="margin-top:6px">Make the next step clear.</h2></div><span class="badge">Markdown</span></div><label for="output-type">Package</label><select id="output-type"><option value="spec">Project specification</option><option value="agent">Implementation handoff</option><option value="issues">Issue backlog</option></select><div class="row toolbar"><button class="primary" id="download">Download .md</button><button id="copy">Copy</button></div><small id="output-summary"></small><pre id="preview"></pre></section></div>
-<dialog id="github-dialog"><div class="row between"><h2>Send a reviewed plan to GitHub</h2><button id="github-close" aria-label="Close GitHub dialog">✕</button></div><p class="muted">Review the exact payload below. Each action writes to GitHub only when you click its publish button.</p><label for="token">Personal access token<small>Kept in memory until this page closes; excluded from saved projects and exports. Use a trusted copy of this file.</small></label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"><div class="row toolbar"><button id="disconnect">Clear token</button><a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener noreferrer">Token settings</a></div><small>For existing repositories: Contents write for specification PRs, Pull requests write for PRs, Issues write for issues. Repository creation may require additional account permissions. GitHub organization policies can restrict access.</small><label for="gh-action">Action</label><select id="gh-action"><option value="issue">Create a planning issue</option><option value="pr">Open a specification PR</option><option value="repo">Create a personal repository</option></select><label for="gh-repo">Repository<small>Existing owner/repo, or a new personal repository name for “Create repository”.</small></label><input id="gh-repo" placeholder="owner/repository"><div id="repo-options" class="hidden"><label for="visibility">Visibility</label><select id="visibility"><option value="private">Private</option><option value="public">Public</option></select></div><div id="pr-options" class="hidden"><label for="gh-base">Base branch<small>Leave blank to use the repository’s default branch. The repository must have an initial commit.</small></label><input id="gh-base" placeholder="Default branch"><label for="gh-path">Specification file path<small>A unique branch is created. An existing file at this path is updated only on that branch.</small></label><input id="gh-path" value="docs/SPECIFICATION.md"></div><label for="gh-title">Title</label><input id="gh-title"><label for="gh-payload">Markdown payload</label><textarea id="gh-payload" rows="10" readonly></textarea><button class="primary toolbar" id="publish">Create planning issue</button><div id="github-result" role="status" aria-live="polite"></div></dialog>
-<div id="status" role="status" class="hidden"></div>
-<script>
-'use strict';
-const sections=[
-{title:'Plant the idea',description:'Explain the problem before deciding how to solve it.',guide:'A concrete user and a specific pain make a stronger starting point than a list of technologies.',fields:[['name','Project name','A short, memorable name.','input'],['idea','The idea','Describe what you want to build in a few sentences.'],['problem','Problem & current workaround','What is hard today? How do people currently handle it?'],['audience','Who is it for?','Name the primary users and the context in which they will use it.'],['success','Success measures','Use observable outcomes: for example, create and export a plan in under five minutes.']]},
-{title:'Define the boundaries',description:'Give your first version a clear shape.',guide:'Separate the essential first release from future ambitions. Record uncertain decisions explicitly.',fields:[['scope','In scope for v1','One capability per line.'],['nonGoals','Out of scope','What should the agent deliberately leave for later?'],['constraints','Constraints','Budget, deadline, platform, offline use, accessibility, privacy, dependencies.'],['assumptions','Assumptions','Unverified beliefs that affect the plan.'],['questions','Open questions','Decisions that need answers before implementation.']]},
-{title:'Describe the experience',description:'Show what people do and what the system does in response.',guide:'Walk through the happy path, then explain empty states, errors, interrupted work, and recovery.',fields:[['journeys','User journeys','Numbered steps from the user’s goal to a useful result.'],['requirements','Functional requirements','One requirement per line; exported with stable positional REQ IDs.'],['acceptance','Acceptance criteria','One testable outcome per line. Reference REQ-001, etc. where relevant.'],['edgeCases','Edge cases & failure behavior','Invalid input, lost connectivity, permissions, duplicate actions, large inputs.'],['design','Design & accessibility','Layout, style, keyboard interaction, responsive behavior, feedback.']]},
-{title:'Map the system',description:'Make technical choices and important boundaries explicit.',guide:'Describe contracts and data ownership. If the stack is undecided, write “undecided” and list the constraints.',fields:[['stack','Stack & architecture','Languages, runtime, components, integrations, and their responsibilities.'],['data','Data model & persistence','Entities, important fields, validation rules, storage, backups, retention.'],['interfaces','APIs & integration contracts','Inputs, outputs, authentication, errors, rate limits, and retries.'],['security','Security & privacy','Secret handling, permissions, trust boundaries, sensitive data.'],['quality','Quality requirements','Measurable performance, reliability, accessibility, and compatibility targets.']]},
-{title:'Plan the build',description:'Break the work into small units an agent can verify.',guide:'One task per line. Include its deliverable, dependencies, related requirements, and how to verify it.',fields:[['tasks','Implementation tasks','Example: Build Markdown exporter | depends: form schema | REQ-003 | verify: Unicode export matches preview.'],['testing','Verification plan','Commands or manual checks, test cases, fixtures, and expected results.'],['delivery','Delivery & definition of done','Files to deliver, documentation, release steps, and completion checks.'],['agentRules','Agent working instructions','Repository conventions, allowed changes, when to ask, how to report evidence.']]}
-];
-const keys=sections.flatMap(s=>s.fields.map(f=>f[0]));
-const $=id=>document.getElementById(id);const STORAGE='fertilizer.workspace.v1';
-let projects=[],currentId='',sectionIndex=0,busy=false,storageError=false,toastTimer;
-function blank(){return {id:crypto.randomUUID(),...Object.fromEntries(keys.map(k=>[k,''])),updatedAt:new Date().toISOString()};}
-function validateProject(value){if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Expected a project object.');for(const key of keys)if(value[key]!==undefined&&(typeof value[key]!=='string'||value[key].length>100000))throw Error('Invalid or oversized field: '+key);if(value.name===undefined&&value.idea===undefined)throw Error('This file is not a Fertilizer project.');return {...blank(),...Object.fromEntries(keys.map(k=>[k,value[k]||'']))};}
-function project(){return projects.find(p=>p.id===currentId);}
-function notify(message){$('status').textContent=message;$('status').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('status').classList.add('hidden'),5000);}
-function save(){project().updatedAt=new Date().toISOString();try{localStorage.setItem(STORAGE,JSON.stringify({version:1,currentId,projects}));storageError=false;$('save-state').textContent='Saved locally';}catch{storageError=true;$('save-state').textContent='Unsaved · download a backup';}}
-function list(){const select=$('project-list');select.replaceChildren();for(const p of projects){const o=document.createElement('option');o.value=p.id;o.textContent=p.name||'Untitled idea';select.append(o);}select.value=currentId;}
-function lines(value){return value.split('\n').map(x=>x.trim()).filter(Boolean);}
-function numbered(value,prefix){return lines(value).map((line,i)=>`- **${prefix}-${String(i+1).padStart(3,'0')}** ${line}`).join('\n');}
-function fieldText(p,key){if(!p[key].trim())return '_Not specified — resolve before relying on this section._';return ['requirements','acceptance','tasks'].includes(key)?numbered(p[key],{requirements:'REQ',acceptance:'AC',tasks:'TASK'}[key]):p[key].trim();}
-function specification(p=project()){return `# ${p.name.trim()||'Untitled project'}\n\n> Project specification · Fertilizer\n> Unspecified sections and assumptions are not approved requirements.\n\n`+sections.map(s=>`## ${s.title}\n\n`+s.fields.filter(f=>f[0]!=='name').map(f=>`### ${f[1]}\n\n${fieldText(p,f[0])}\n`).join('\n')).join('\n');}
-function backlog(p=project()){return `# ${p.name||'Untitled project'} — issue backlog\n\n`+(lines(p.tasks).length?lines(p.tasks).map((task,i)=>`## TASK-${String(i+1).padStart(3,'0')}: ${task}\n\n### Context\n${p.idea||'_Not specified._'}\n\n### Acceptance criteria (project-wide; refine for this task)\n${fieldText(p,'acceptance')}\n\n### Verification\n${fieldText(p,'testing')}\n\n### Definition of done\n${fieldText(p,'delivery')}\n`).join('\n'):'_No tasks yet. Add deliverables, dependencies, requirement IDs, and verification steps in Plan the build._');}
-function handoff(p=project()){return `# Implementation handoff\n\nYou are implementing the project below.\n\n1. Inspect the repository and its instructions before editing.\n2. Identify unanswered questions and conflicting requirements. Ask about blocking decisions; label any proposed defaults as assumptions.\n3. Implement the smallest useful increment within v1 scope. Respect the explicit non-goals.\n4. Link work to REQ and TASK IDs. These IDs follow line order; finalize ordering before creating issues.\n5. Verify acceptance criteria and report the checks actually run and their results. Never claim unrun checks passed.\n6. Deliver a reviewable change with documentation, remaining limitations, and next steps.\n\n${specification(p)}`;}
-function output(){return {spec:specification,agent:handoff,issues:backlog}[$('output-type').value]();}
-function gaps(p=project()){const checks=[['problem','Describe the problem and current workaround.'],['audience','Identify the primary user.'],['scope','Define the first release.'],['requirements','Write concrete functional requirements.'],['acceptance','Add testable acceptance criteria.'],['security','Specify secret handling and privacy boundaries.'],['tasks','Break implementation into verifiable tasks.'],['testing','Describe how completion will be checked.']];const missing=checks.filter(([k])=>!p[k].trim()).map(([,text])=>text);if(p.questions.trim())missing.push('Resolve or explicitly defer the open questions.');if(p.assumptions.trim())missing.push('Validate assumptions that affect implementation.');return missing;}
-function refresh(){const p=project();$('preview').textContent=output();const count=keys.filter(k=>p[k].trim()).length;const percent=Math.round(count/keys.length*100);$('score').textContent=percent+'%';$('progress').style.width=percent+'%';$('output-summary').textContent=`${lines(p.requirements).length} requirements · ${lines(p.tasks).length} tasks · ${gaps().length} review prompts`;$('questions').replaceChildren();for(const text of gaps().length?gaps():['Review the plan for ambiguity, requirement-to-test coverage, and realistic task dependencies.']){const li=document.createElement('li');li.textContent=text;$('questions').append(li);}}
-function render(){list();const s=sections[sectionIndex];$('step').textContent=`Step ${sectionIndex+1} / ${sections.length}`;$('section-title').textContent=s.title;$('section-description').textContent=s.description;$('section-guide').textContent=s.guide;$('nav').replaceChildren();sections.forEach((s,i)=>{const b=document.createElement('button');b.textContent=`0${i+1}  ${s.title}`;b.classList.toggle('active',i===sectionIndex);b.setAttribute('aria-current',i===sectionIndex?'step':'false');b.onclick=()=>{sectionIndex=i;render();};$('nav').append(b);});$('fields').replaceChildren();for(const [key,title,hint,type] of s.fields){const label=document.createElement('label');label.htmlFor='field-'+key;label.textContent=title;const small=document.createElement('small');small.textContent=hint;label.append(small);const input=document.createElement(type==='input'?'input':'textarea');input.id='field-'+key;input.value=project()[key];input.dataset.key=key;input.oninput=()=>{project()[key]=input.value;save();if(key==='name')list();refresh();};$('fields').append(label,input);}$('previous').disabled=sectionIndex===0;$('next').textContent=sectionIndex===sections.length-1?'Copy handoff →':'Next →';refresh();}
-function download(content,name,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function slug(){return (project().name||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'project';}
-async function copy(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard.');}catch{notify('Clipboard unavailable. Download the Markdown or select the preview text.');}}
-$('previous').onclick=()=>{sectionIndex--;render();};$('next').onclick=()=>{if(sectionIndex===sections.length-1)copy(handoff());else{sectionIndex++;render();}};
-$('project-list').onchange=()=>{currentId=$('project-list').value;save();render();};
-$('new-project').onclick=()=>{const p=blank();projects.push(p);currentId=p.id;sectionIndex=0;save();render();$('field-name').focus();};
-$('delete-project').onclick=()=>{if(!confirm(`Delete “${project().name||'Untitled idea'}” from this browser? Export a backup first if you need it.`))return;projects=projects.filter(p=>p.id!==currentId);if(!projects.length)projects.push(blank());currentId=projects[0].id;save();render();};
-$('output-type').onchange=refresh;$('download').onclick=()=>download(output(),`${slug()}-${$('output-type').value}.md`,'text/markdown;charset=utf-8');$('copy').onclick=()=>copy(output());
-$('export-json').onclick=()=>download(JSON.stringify({version:1,project:project()},null,2),slug()+'.fertilizer.json','application/json');$('import-json').onclick=()=>$('import-file').click();
-$('import-file').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>3000000)throw Error('Project file must be smaller than 3 MB.');const data=JSON.parse(await file.text());if(data.version!==1||!data.project)throw Error('Expected a version 1 Fertilizer project backup.');const p=validateProject(data.project);projects.push(p);currentId=p.id;save();render();notify('Project imported as a new copy.');}catch(error){notify(error.message);}finally{e.target.value='';}};
-$('discovery').onclick=()=>copy(`Help me refine this project into an implementable specification. Ask focused questions about missing information, scope, acceptance criteria, and risks. Do not invent answers or mark assumptions as facts. Start with the most important unresolved decisions.\n\nReview prompts:\n${gaps().map(x=>'- '+x).join('\n')||'- Check ambiguity and requirement-to-test coverage.'}\n\n${specification()}`);
-$('example').onclick=()=>{const p={...blank(),name:'Fertilizer',idea:'A portable workspace to turn rough project ideas into clear specifications and AI agent handoffs.',problem:'Project prompts omit constraints and verification, causing agents to guess and overbuild.',audience:'Solo developers coordinating AI coding agents.',success:'A user can draft a specification, reload it, and export a complete Markdown handoff.',scope:'Guided project specification\nLocal project persistence and JSON backups\nMarkdown specification and agent prompt exports\nGitHub planning issue, repository, and specification PR',nonGoals:'Running agents\nBuilt-in AI generation\nMulti-user synchronization\nPublishing application code from a specification PR',constraints:'One standalone HTML file. No build step, external scripts, or backend.',assumptions:'Users review the specification before publishing or implementing it.',journeys:'1. Create a project.\n2. Define users, scope, requirements, and tests.\n3. Review unanswered questions.\n4. Export a handoff or publish a GitHub planning artifact.',requirements:'Save project edits locally.\nExport specification and handoff as UTF-8 Markdown.\nPublish a specification on a new branch and open a PR.',acceptance:'REQ-001: After editing and reloading, the project text is preserved.\nREQ-002: Unicode and multiline text survive Markdown and JSON exports.\nREQ-003: Base branch is unchanged; the PR contains the reviewed specification.',edgeCases:'Storage unavailable: display unsaved state and allow backups.\nGitHub API failure: show error and any partial artifacts; do not silently retry writes.',design:'Dark green workspace, keyboard accessible controls, responsive layout, plain-text preview.',stack:'HTML, CSS, vanilla JavaScript; GitHub REST API.',data:'Project fields as strings; versioned localStorage workspace; versioned JSON project backup.',interfaces:'GitHub authenticated REST requests over HTTPS. Token exists only in memory.',security:'Never export or persist tokens. Render user content as text. Private repository creation is the default.',quality:'Core drafting and exports work offline in current desktop browsers.',tasks:'Build specification editor | REQ-001 | verify: reload round trip\nBuild export packages | REQ-002 | verify: Unicode round trip\nAdd GitHub specification PR | depends: exporter | REQ-003 | verify: mocked API branch/content/PR sequence',testing:'Browser integration tests for persistence, imports, safe rendering, exports, responsive layout, and GitHub requests.',delivery:'Deliver index.html, README, tests, and a reviewable PR.',agentRules:'Keep the app dependency free. Do not invent answers. Report actual test results.'};projects.push(p);currentId=p.id;sectionIndex=0;save();render();};
-function ghPreview(){const action=$('gh-action').value;$('repo-options').classList.toggle('hidden',action!=='repo');$('pr-options').classList.toggle('hidden',action!=='pr');$('gh-title').value=`${action==='issue'?'Plan: ':action==='pr'?'Specification: ':''}${project().name||'Untitled project'}`;$('gh-payload').value=specification();$('publish').textContent={issue:'Create planning issue',pr:'Create branch and open PR',repo:'Create repository and add specification'}[action];}
-$('github-open').onclick=()=>{ghPreview();$('github-result').replaceChildren();$('github-dialog').showModal();};$('github-close').onclick=()=>$('github-dialog').close();$('disconnect').onclick=()=>{$('token').value='';notify('Token cleared.');};$('gh-action').onchange=ghPreview;
-async function api(path,method='GET',body){const token=$('token').value.trim();if(!token)throw Error('Enter a GitHub token first.');let response;try{response=await fetch('https://api.github.com'+path,{method,headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}catch{throw Error('Could not reach GitHub. Check your connection and browser network permissions. Review any partial results before retrying.');}const data=await response.json().catch(()=>({}));if(!response.ok){const error=Error(`GitHub ${response.status}: ${data.message||response.statusText}`);error.status=response.status;throw error;}return data;}
-function result(text,url){const p=document.createElement('p');p.textContent=text+' ';if(url&&/^https:\/\/github\.com\//.test(url)){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='View on GitHub ↗';p.append(a);}$('github-result').append(p);}
-function base64(text){const bytes=new TextEncoder().encode(text);let binary='';for(const b of bytes)binary+=String.fromCharCode(b);return btoa(binary);}
-function repoPath(value){if(!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(value)||value.split('/').some(x=>x==='.'||x==='..'))throw Error('Use an existing repository in owner/repo format.');return '/repos/'+value;}
-$('publish').onclick=async()=>{if(busy)return;const action=$('gh-action').value;const destination=$('gh-repo').value.trim();const title=$('gh-title').value.trim();const payload=$('gh-payload').value;if(!title||!project().name.trim()||!project().idea.trim()){result('Add a project name, idea, and GitHub title before publishing.');return;}busy=true;for(const el of $('github-dialog').querySelectorAll('button,input,select'))el.disabled=true;$('github-result').replaceChildren();try{if(action==='repo'){if(!/^[a-zA-Z0-9_.-]+$/.test(destination)||/^\.{1,2}$/.test(destination))throw Error('Enter a new personal repository name, without an owner prefix.');const repo=await api('/user/repos','POST',{name:destination,description:project().idea.slice(0,350),private:$('visibility').value==='private',auto_init:true});result('Repository created.',repo.html_url);const path='/repos/'+repo.full_name;await api(path+'/contents/docs/SPECIFICATION.md','PUT',{message:'Add project specification',content:base64(payload),branch:repo.default_branch});result('Specification committed.',repo.html_url+'/blob/'+repo.default_branch+'/docs/SPECIFICATION.md');$('gh-repo').value=repo.full_name;
-}else{const path=repoPath(destination);if(action==='issue'){const issue=await api(path+'/issues','POST',{title,body:payload});result('Planning issue created.',issue.html_url);}else{const file=$('gh-path').value.trim();if(!file||file.startsWith('/')||file.split('/').some(x=>!x||x==='.'||x==='..')||!file.endsWith('.md')||/[\u0000-\u001f?#\\]/.test(file))throw Error('Use a relative Markdown path such as docs/SPECIFICATION.md.');const repo=await api(path);const base=$('gh-base').value.trim()||repo.default_branch;const ref=await api(path+'/git/ref/heads/'+encodeURIComponent(base));const branch='fertilizer/spec-'+crypto.randomUUID();await api(path+'/git/refs','POST',{ref:'refs/heads/'+branch,sha:ref.object.sha});result('Specification branch created. If a later step fails, inspect this branch before retrying.','https://github.com/'+destination+'/tree/'+branch);const encoded=file.split('/').map(encodeURIComponent).join('/');let sha;try{const existing=await api(path+'/contents/'+encoded+'?ref='+encodeURIComponent(branch));if(!existing.sha||existing.type!=='file')throw Error('The specification path is not a file.');sha=existing.sha;}catch(error){if(error.status!==404)throw error;}await api(path+'/contents/'+encoded,'PUT',{message:'Add reviewed project specification',content:base64(payload),branch,...(sha?{sha}:{})});result('Specification committed on the new branch.');const pr=await api(path+'/pulls','POST',{title,head:branch,base,body:'Adds the reviewed Fertilizer project specification.\n\nScope: planning document only; application implementation is separate.'});result('Specification PR opened.',pr.html_url);}}}catch(error){result(error.message+' No automatic retry was attempted.');}finally{busy=false;for(const el of $('github-dialog').querySelectorAll('button,input,select'))el.disabled=false;}};
-try{const raw=localStorage.getItem(STORAGE);if(raw){const data=JSON.parse(raw);if(data.version!==1||!Array.isArray(data.projects)||!data.projects.length)throw Error('Invalid workspace');projects=data.projects.map(p=>({...validateProject(p),id:typeof p.id==='string'?p.id:crypto.randomUUID()}));currentId=projects.some(p=>p.id===data.currentId)?data.currentId:projects[0].id;}}catch{storageError=true;notify('Could not load saved projects. The stored data has not been overwritten. Export or import a backup before editing.');}if(!projects.length){projects.push(blank());currentId=projects[0].id;}render();if(storageError)$('save-state').textContent='Saved workspace unavailable';
-</script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Fertilizer · Grow an idea into a plan</title>
+    <style>
+      :root {
+        --bg: #101411;
+        --panel: #191e1a;
+        --line: #303a31;
+        --text: #e7ece4;
+        --muted: #a3afa2;
+        --green: #b6e38b;
+        --accent: #d2b58a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--line);
+        background: #242c24;
+        color: var(--text);
+        padding: 9px 14px;
+        border-radius: 7px;
+      }
+      button:hover {
+        border-color: var(--green);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      button.primary {
+        background: var(--green);
+        color: #17210e;
+        border-color: var(--green);
+        font-weight: 650;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px;
+        background: #111712;
+        color: var(--text);
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+      input:focus,
+      textarea:focus,
+      select:focus,
+      button:focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
+      }
+      header {
+        padding: 20px 32px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .brand {
+        font-size: 22px;
+        font-weight: 750;
+        letter-spacing: -0.6px;
+      }
+      .brand span {
+        color: var(--green);
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: var(--green);
+        text-transform: uppercase;
+      }
+      .muted,
+      small {
+        color: var(--muted);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 235px minmax(360px, 1fr) minmax(320px, 0.85fr);
+        max-width: 1800px;
+        margin: auto;
+        min-height: calc(100vh - 84px);
+      }
+      aside {
+        padding: 26px 20px;
+        border-right: 1px solid var(--line);
+      }
+      main {
+        padding: 30px;
+      }
+      .preview {
+        padding: 30px 24px;
+        border-left: 1px solid var(--line);
+        background: #141a15;
+      }
+      h1 {
+        font-size: 30px;
+        letter-spacing: -1px;
+        margin: 5px 0 8px;
+      }
+      h2 {
+        font-size: 19px;
+        margin: 0 0 14px;
+      }
+      p {
+        margin: 8px 0 18px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .nav {
+        display: grid;
+        gap: 6px;
+        margin: 24px 0;
+      }
+      .nav button {
+        text-align: left;
+        background: transparent;
+        border-color: transparent;
+      }
+      .nav button.active {
+        background: #2b3826;
+        color: var(--green);
+        border-color: #42553a;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px;
+        margin: 18px 0;
+        background: var(--panel);
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin: 20px 0 7px;
+      }
+      label small {
+        display: block;
+        font-weight: 400;
+        margin: 4px 0 8px;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font:
+          12px/1.65 ui-monospace,
+          monospace;
+        margin: 18px 0;
+        max-height: 70vh;
+        overflow: auto;
+        color: #c3d0bd;
+      }
+      .progress {
+        height: 5px;
+        background: var(--line);
+        border-radius: 6px;
+        margin: 12px 0;
+      }
+      .progress div {
+        height: 100%;
+        background: var(--green);
+        border-radius: 6px;
+      }
+      .badge {
+        font-size: 12px;
+        color: var(--green);
+        padding: 4px 8px;
+        border: 1px solid #3d5034;
+        border-radius: 20px;
+      }
+      .guidance {
+        padding: 13px 16px;
+        border-left: 3px solid var(--accent);
+        background: #26251e;
+        color: #d5c6ac;
+        margin: 20px 0;
+        font-size: 13px;
+      }
+      .checklist {
+        padding-left: 20px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .checklist li {
+        margin: 8px 0;
+      }
+      .checklist button {
+        padding: 7px 10px;
+        text-align: left;
+        width: 100%;
+        background: transparent;
+        font-size: 13px;
+      }
+      .checklist {
+        list-style: none;
+        padding: 0;
+      }
+      .severity {
+        color: var(--accent);
+      }
+      main,
+      .preview,
+      aside {
+        min-width: 0;
+      }
+      #publish-validation {
+        color: var(--accent);
+        white-space: pre-line;
+      }
+      #preview {
+        scrollbar-gutter: stable;
+      }
+      .toolbar {
+        margin: 16px 0;
+      }
+      .hidden {
+        display: none !important;
+      }
+      dialog {
+        color: var(--text);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        max-width: 760px;
+        width: calc(100% - 32px);
+        max-height: 90vh;
+        padding: 24px;
+      }
+      dialog::backdrop {
+        background: #000b;
+      }
+      a {
+        color: var(--green);
+      }
+      #status {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2a3627;
+        box-shadow: 0 8px 35px #0008;
+        padding: 12px 20px;
+        border: 1px solid #53634b;
+        border-radius: 9px;
+        max-width: 90%;
+        z-index: 5;
+      }
+      #github-result {
+        overflow-wrap: anywhere;
+      }
+      .preview small {
+        display: block;
+        margin-top: 8px;
+      }
+      .actions {
+        display: grid;
+        gap: 8px;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      @media (max-width: 1100px) {
+        .layout {
+          grid-template-columns: 210px 1fr;
+        }
+        .preview {
+          grid-column: 2;
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+      }
+      @media (max-width: 680px) {
+        header {
+          padding: 16px;
+          align-items: flex-start;
+        }
+        .layout {
+          display: block;
+        }
+        aside {
+          border: 0;
+          padding: 16px;
+        }
+        .nav {
+          grid-template-columns: repeat(3, 1fr);
+          margin: 12px 0;
+        }
+        .nav button {
+          font-size: 12px;
+          padding: 8px;
+        }
+        main,
+        .preview {
+          padding: 20px;
+        }
+        .split {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 26px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <div class="brand"><span>✳</span> Fertilizer</div>
+        <small>Good ideas deserve a clear plan.</small>
+      </div>
+      <div class="row">
+        <span id="save-state" class="muted" role="status">Saved locally</span
+        ><button id="github-open">GitHub ↗</button>
+      </div>
+    </header>
+    <section
+      id="recovery"
+      class="card hidden"
+      role="alert"
+      style="margin: 16px 32px"
+    >
+      <strong>Workspace recovery · autosave paused</strong>
+      <p id="recovery-message"></p>
+      <div class="row">
+        <button id="download-recovery">Download original workspace</button
+        ><button id="accept-recovery">Use current workspace</button>
+      </div>
+    </section>
+    <div class="layout">
+      <aside>
+        <div class="eyebrow">Your workspace</div>
+        <label for="project-list">Project</label
+        ><select id="project-list"></select>
+        <div class="row toolbar">
+          <button id="new-project">+ New</button
+          ><button id="example">Example</button>
+        </div>
+        <nav class="nav" aria-label="Specification sections" id="nav"></nav>
+        <div class="card">
+          <div class="row between">
+            <strong>Coverage</strong><span id="score" class="badge"></span>
+          </div>
+          <div class="progress"><div id="progress"></div></div>
+          <small
+            >Filled fields show coverage. Review the questions before handing
+            off.</small
+          >
+        </div>
+        <div class="actions">
+          <button id="duplicate-project">Duplicate project</button
+          ><button id="export-json">Back up project</button
+          ><button id="import-json">Import project</button
+          ><button id="delete-project">Delete project</button>
+        </div>
+        <input
+          id="import-file"
+          type="file"
+          accept=".json,application/json"
+          hidden
+        />
+      </aside>
+      <main>
+        <div class="eyebrow" id="step"></div>
+        <h1 id="section-title"></h1>
+        <p class="muted" id="section-description"></p>
+        <div id="fields"></div>
+        <div class="guidance" id="section-guide"></div>
+        <div class="row between toolbar">
+          <button id="previous">← Previous</button
+          ><button class="primary" id="next">Next →</button>
+        </div>
+        <div class="card">
+          <div class="row between">
+            <h2>Plan review</h2>
+            <span id="review-count" class="badge"></span>
+          </div>
+          <p class="muted">
+            Check missing decisions and requirement coverage. These checks are
+            guidance, not proof of correctness.
+          </p>
+          <ul class="checklist" id="questions"></ul>
+          <div class="row">
+            <button id="discovery">Copy discovery prompt</button
+            ><button id="pin-ids">Pin reference IDs</button>
+          </div>
+        </div>
+      </main>
+      <section class="preview" aria-label="Live export preview">
+        <div class="row between">
+          <div>
+            <div class="eyebrow">Agent package</div>
+            <h2 style="margin-top: 6px">Make the next step clear.</h2>
+          </div>
+          <span class="badge">Markdown</span>
+        </div>
+        <label for="output-type">Package</label
+        ><select id="output-type">
+          <option value="spec">Project specification</option>
+          <option value="agent">Implementation handoff</option>
+          <option value="issues">Issue backlog</option>
+          <option value="task">Single-task handoff</option>
+          <option value="review">Plan review report</option>
+        </select>
+        <div id="task-options" class="hidden">
+          <label for="task-select">Task to hand off</label
+          ><select id="task-select"></select
+          ><small
+            >Includes the linked requirements, acceptance checks, dependencies,
+            and project constraints.</small
+          ><button id="publish-task" class="toolbar">
+            Create issue for this task ↗
+          </button>
+        </div>
+        <div class="row toolbar">
+          <button class="primary" id="download">Download .md</button
+          ><button id="copy">Copy</button>
+        </div>
+        <small id="output-summary"></small>
+        <pre id="preview"></pre>
+      </section>
+    </div>
+    <dialog id="github-dialog" aria-labelledby="github-title">
+      <div class="row between">
+        <h2 id="github-title">Send a reviewed plan to GitHub</h2>
+        <button id="github-close" aria-label="Close GitHub dialog">✕</button>
+      </div>
+      <p class="muted">
+        Review the exact payload below. Each action writes to GitHub only when
+        you click its publish button.
+      </p>
+      <label for="token"
+        >Personal access token<small
+          >Kept in memory until this page closes; excluded from saved projects
+          and exports. Use a trusted copy of this file.</small
+        ></label
+      ><input
+        id="token"
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="github_pat_…"
+      />
+      <div class="row toolbar">
+        <button id="disconnect">Clear token</button
+        ><a
+          href="https://github.com/settings/personal-access-tokens"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Token settings</a
+        >
+      </div>
+      <small
+        >For existing repositories: Contents write for specification PRs, Pull
+        requests write for PRs, Issues write for issues. Repository creation may
+        require additional account permissions. GitHub organization policies can
+        restrict access.</small
+      ><label for="gh-action">Action</label
+      ><select id="gh-action">
+        <option value="issue">Create a planning issue</option>
+        <option value="pr">Open a specification PR</option>
+        <option value="repo">Create a personal repository</option>
+      </select>
+      <div id="issue-options">
+        <label for="gh-task">Issue content</label
+        ><select id="gh-task">
+          <option value="">Full project plan</option>
+        </select>
+      </div>
+      <label for="gh-repo"
+        >Repository<small
+          >Existing owner/repo, or a new personal repository name for “Create
+          repository”.</small
+        ></label
+      ><input id="gh-repo" placeholder="owner/repository" />
+      <div id="repo-options" class="hidden">
+        <label for="visibility">Visibility</label
+        ><select id="visibility">
+          <option value="private">Private</option>
+          <option value="public">Public</option>
+        </select>
+      </div>
+      <div id="pr-options" class="hidden">
+        <label for="gh-base"
+          >Base branch<small
+            >Leave blank to use the repository’s default branch. The repository
+            must have an initial commit.</small
+          ></label
+        ><input id="gh-base" placeholder="Default branch" /><label for="gh-path"
+          >Specification file path<small
+            >A unique branch is created. An existing file at this path is
+            updated only on that branch.</small
+          ></label
+        ><input id="gh-path" value="docs/SPECIFICATION.md" />
+      </div>
+      <label for="gh-title">Title</label
+      ><input id="gh-title" maxlength="256" /><label for="gh-payload"
+        >Markdown payload</label
+      ><textarea id="gh-payload" rows="10" readonly></textarea>
+      <p id="publish-validation" role="status"></p>
+      <button class="primary toolbar" id="publish">
+        Create planning issue
+      </button>
+      <div id="github-result" role="status" aria-live="polite"></div>
+    </dialog>
+    <div id="status" role="status" class="hidden"></div>
+    <script>
+      "use strict";
+      const sections = [
+        {
+          title: "Plant the idea",
+          description: "Explain the problem before deciding how to solve it.",
+          guide:
+            "A concrete user and a specific pain make a stronger starting point than a list of technologies.",
+          fields: [
+            ["name", "Project name", "A short, memorable name.", "input"],
+            [
+              "idea",
+              "The idea",
+              "Describe what you want to build in a few sentences.",
+            ],
+            [
+              "problem",
+              "Problem & current workaround",
+              "What is hard today? How do people currently handle it?",
+            ],
+            [
+              "audience",
+              "Who is it for?",
+              "Name the primary users and the context in which they will use it.",
+            ],
+            [
+              "success",
+              "Success measures",
+              "Use observable outcomes: for example, create and export a plan in under five minutes.",
+            ],
+          ],
+        },
+        {
+          title: "Define the boundaries",
+          description: "Give your first version a clear shape.",
+          guide:
+            "Separate the essential first release from future ambitions. Record uncertain decisions explicitly.",
+          fields: [
+            ["scope", "In scope for v1", "One capability per line."],
+            [
+              "nonGoals",
+              "Out of scope",
+              "What should the agent deliberately leave for later?",
+            ],
+            [
+              "constraints",
+              "Constraints",
+              "Budget, deadline, platform, offline use, accessibility, privacy, dependencies.",
+            ],
+            [
+              "assumptions",
+              "Assumptions",
+              "Unverified beliefs that affect the plan.",
+            ],
+            [
+              "questions",
+              "Open questions",
+              "Decisions that need answers before implementation.",
+            ],
+          ],
+        },
+        {
+          title: "Describe the experience",
+          description:
+            "Show what people do and what the system does in response.",
+          guide:
+            "Walk through the happy path, then explain empty states, errors, interrupted work, and recovery.",
+          fields: [
+            [
+              "journeys",
+              "User journeys",
+              "Numbered steps from the user’s goal to a useful result.",
+            ],
+            [
+              "requirements",
+              "Functional requirements",
+              "One requirement per line. Pin reference IDs before creating linked acceptance criteria or tasks; keep IDs when reordering.",
+            ],
+            [
+              "acceptance",
+              "Acceptance criteria",
+              "One testable outcome per line. Reference REQ-001, etc. where relevant.",
+            ],
+            [
+              "edgeCases",
+              "Edge cases & failure behavior",
+              "Invalid input, lost connectivity, permissions, duplicate actions, large inputs.",
+            ],
+            [
+              "design",
+              "Design & accessibility",
+              "Layout, style, keyboard interaction, responsive behavior, feedback.",
+            ],
+          ],
+        },
+        {
+          title: "Map the system",
+          description:
+            "Make technical choices and important boundaries explicit.",
+          guide:
+            "Describe contracts and data ownership. If the stack is undecided, write “undecided” and list the constraints.",
+          fields: [
+            [
+              "stack",
+              "Stack & architecture",
+              "Languages, runtime, components, integrations, and their responsibilities.",
+            ],
+            [
+              "data",
+              "Data model & persistence",
+              "Entities, important fields, validation rules, storage, backups, retention.",
+            ],
+            [
+              "interfaces",
+              "APIs & integration contracts",
+              "Inputs, outputs, authentication, errors, rate limits, and retries.",
+            ],
+            [
+              "security",
+              "Security & privacy",
+              "Secret handling, permissions, trust boundaries, sensitive data.",
+            ],
+            [
+              "quality",
+              "Quality requirements",
+              "Measurable performance, reliability, accessibility, and compatibility targets.",
+            ],
+          ],
+        },
+        {
+          title: "Plan the build",
+          description: "Break the work into small units an agent can verify.",
+          guide:
+            "One task per line. Include its deliverable, dependencies, related requirements, and how to verify it.",
+          fields: [
+            [
+              "tasks",
+              "Implementation tasks",
+              "Example: Build Markdown exporter | depends: form schema | REQ-003 | verify: Unicode export matches preview.",
+            ],
+            [
+              "testing",
+              "Verification plan",
+              "Commands or manual checks, test cases, fixtures, and expected results.",
+            ],
+            [
+              "delivery",
+              "Delivery & definition of done",
+              "Files to deliver, documentation, release steps, and completion checks.",
+            ],
+            [
+              "agentRules",
+              "Agent working instructions",
+              "Repository conventions, allowed changes, when to ask, how to report evidence.",
+            ],
+          ],
+        },
+      ];
+      const keys = sections.flatMap((s) => s.fields.map((f) => f[0]));
+      const $ = (id) => document.getElementById(id);
+      const STORAGE = "fertilizer.workspace.v1";
+      const FIELD_LIMIT = 100000,
+        IMPORT_LIMIT = 16000000;
+      const prefixes = { requirements: "REQ", acceptance: "AC", tasks: "TASK" };
+      const isObject = (value) =>
+        value !== null && typeof value === "object" && !Array.isArray(value);
+      let projects = [],
+        currentId = "",
+        sectionIndex = 0,
+        busy = false,
+        storageError = false,
+        toastTimer,
+        recoveryRaw = null,
+        lastStored = null;
+      const published = new Set();
+      function blank() {
+        return {
+          id: crypto.randomUUID(),
+          ...Object.fromEntries(keys.map((k) => [k, ""])),
+          updatedAt: new Date().toISOString(),
+          nextIds: { REQ: 1, AC: 1, TASK: 1 },
+        };
+      }
+      function validateProject(value) {
+        if (!isObject(value)) throw Error("Expected a project object.");
+        for (const key of keys)
+          if (
+            value[key] !== undefined &&
+            (typeof value[key] !== "string" || value[key].length > FIELD_LIMIT)
+          )
+            throw Error("Invalid or oversized field: " + key);
+        if (value.name === undefined && value.idea === undefined)
+          throw Error("This file is not a Fertilizer project.");
+        const p = {
+          ...blank(),
+          ...Object.fromEntries(keys.map((k) => [k, value[k] || ""])),
+        };
+        if (isObject(value.nextIds))
+          for (const prefix of Object.values(prefixes)) {
+            const next = value.nextIds[prefix];
+            if (
+              next !== undefined &&
+              (!Number.isSafeInteger(next) || next < 1 || next > 1000000000)
+            )
+              throw Error("Invalid reference ID counter.");
+            if (next !== undefined) p.nextIds[prefix] = next;
+          }
+        if (
+          typeof value.updatedAt === "string" &&
+          !Number.isNaN(Date.parse(value.updatedAt))
+        )
+          p.updatedAt = value.updatedAt;
+        return p;
+      }
+      function parseBackup(text) {
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw Error("The backup is not valid JSON.");
+        }
+        if (!isObject(data) || data.version !== 1 || !isObject(data.project))
+          throw Error("Expected a version 1 Fertilizer project backup.");
+        return validateProject(data.project);
+      }
+      function project() {
+        return projects.find((p) => p.id === currentId);
+      }
+      function notify(message) {
+        $("status").textContent = message;
+        $("status").classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(
+          () => $("status").classList.add("hidden"),
+          5000,
+        );
+      }
+      function pauseSaving(raw, message) {
+        recoveryRaw = raw;
+        $("recovery").classList.remove("hidden");
+        $("recovery-message").textContent = message;
+        $("save-state").textContent = "Autosave paused · back up current edits";
+      }
+      function save() {
+        project().updatedAt = new Date().toISOString();
+        if (recoveryRaw !== null) {
+          $("save-state").textContent =
+            "Autosave paused · back up current edits";
+          return;
+        }
+        try {
+          projects.forEach(validateProject);
+          const existing = localStorage.getItem(STORAGE);
+          if (existing !== lastStored) {
+            pauseSaving(
+              existing || "",
+              "Another tab changed this workspace. Back up your current project, then reload to see those changes, or explicitly keep this workspace.",
+            );
+            return;
+          }
+          const serialized = JSON.stringify({
+            version: 1,
+            currentId,
+            projects,
+          });
+          localStorage.setItem(STORAGE, serialized);
+          lastStored = serialized;
+          storageError = false;
+          $("save-state").textContent = "Saved locally";
+        } catch {
+          storageError = true;
+          $("save-state").textContent = "Unsaved · download a backup";
+        }
+      }
+      function loadWorkspace() {
+        let raw = null;
+        try {
+          raw = localStorage.getItem(STORAGE);
+          lastStored = raw;
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (
+            !isObject(data) ||
+            data.version !== 1 ||
+            !Array.isArray(data.projects) ||
+            !data.projects.length
+          )
+            throw Error("Invalid workspace");
+          let invalid = 0;
+          const seen = new Set();
+          for (const candidate of data.projects) {
+            try {
+              const p = validateProject(candidate);
+              p.id =
+                typeof candidate.id === "string" &&
+                candidate.id &&
+                !seen.has(candidate.id)
+                  ? candidate.id
+                  : p.id;
+              seen.add(p.id);
+              projects.push(p);
+            } catch {
+              invalid++;
+            }
+          }
+          currentId = projects.some((p) => p.id === data.currentId)
+            ? data.currentId
+            : projects[0]?.id || "";
+          if (invalid)
+            pauseSaving(
+              raw,
+              `${invalid} project(s) could not be loaded. Valid projects are available. The original workspace is protected until you choose to replace it.`,
+            );
+        } catch {
+          if (raw !== null)
+            pauseSaving(
+              raw,
+              "The saved workspace could not be read. Download the original data for recovery. You can keep working in memory, but autosave will not replace it.",
+            );
+          else {
+            storageError = true;
+            $("save-state").textContent =
+              "Storage unavailable · download a backup";
+          }
+        }
+      }
+      $("download-recovery").onclick = () =>
+        download(
+          recoveryRaw || "",
+          "fertilizer-workspace-recovery.json",
+          "application/json",
+        );
+      $("accept-recovery").onclick = () => {
+        if (
+          !confirm(
+            "Replace the browser workspace with the projects currently shown? Download the original workspace and any current project backups first.",
+          )
+        )
+          return;
+        try {
+          lastStored = localStorage.getItem(STORAGE);
+        } catch {
+          notify(
+            "Storage remains unavailable. Download project backups instead.",
+          );
+          return;
+        }
+        recoveryRaw = null;
+        $("recovery").classList.add("hidden");
+        save();
+      };
+      function list() {
+        const select = $("project-list");
+        select.replaceChildren();
+        for (const p of projects) {
+          const o = document.createElement("option");
+          o.value = p.id;
+          o.textContent = p.name || "Untitled idea";
+          select.append(o);
+        }
+        select.value = currentId;
+      }
+      function lines(value) {
+        return value
+          .split("\n")
+          .map((x) => x.trim())
+          .filter(Boolean);
+      }
+      function entries(value, prefix, p = project()) {
+        const rows = lines(value).map((line) => {
+          const m = line.match(
+            new RegExp("^\\[(" + prefix + "-\\d{3,9})\\]\\s*(.*)$"),
+          );
+          return { id: m ? m[1] : null, text: m ? m[2] : line, pinned: !!m };
+        });
+        const used = new Set(rows.filter((r) => r.id).map((r) => r.id));
+        let next = Math.max(
+          p?.nextIds?.[prefix] || 1,
+          1,
+          ...rows
+            .filter((r) => r.pinned)
+            .map((r) => Number(r.id.split("-")[1]) + 1),
+        );
+        for (const row of rows)
+          if (!row.id) {
+            while (used.has(`${prefix}-${String(next).padStart(3, "0")}`))
+              next++;
+            row.id = `${prefix}-${String(next++).padStart(3, "0")}`;
+            used.add(row.id);
+          }
+        return rows;
+      }
+      function pinProject(p) {
+        const updates = {},
+          counters = { ...p.nextIds };
+        for (const [key, prefix] of Object.entries(prefixes)) {
+          const rows = entries(p[key], prefix, p);
+          const max = Math.max(
+            0,
+            ...rows
+              .filter((r) => r.pinned)
+              .map((r) => Number(r.id.split("-")[1])),
+          );
+          let next = Math.max(counters[prefix] || 1, max + 1);
+          updates[key] = rows
+            .map(
+              (r) =>
+                `[${r.pinned ? r.id : `${prefix}-${String(next++).padStart(3, "0")}`}] ${r.text}`,
+            )
+            .join("\n");
+          if (updates[key].length > FIELD_LIMIT)
+            throw Error(
+              `${key} is too long to add IDs. Shorten it before pinning.`,
+            );
+          counters[prefix] = next;
+        }
+        Object.assign(p, updates, { nextIds: counters });
+      }
+      function numbered(value, prefix, p = project()) {
+        return entries(value, prefix, p)
+          .map((r) => `- **${r.id}** ${r.text}`)
+          .join("\n");
+      }
+      function fieldText(p, key) {
+        if (!p[key].trim())
+          return "_Not specified — resolve before relying on this section._";
+        return prefixes[key]
+          ? numbered(p[key], prefixes[key], p)
+          : p[key].trim();
+      }
+      function references(text, prefix) {
+        return [
+          ...new Set(
+            text.match(new RegExp("\\b" + prefix + "-\\d{3,9}\\b", "g")) || [],
+          ),
+        ];
+      }
+      function specification(p = project()) {
+        return (
+          `# ${p.name.trim() || "Untitled project"}\n\n> Project specification · Fertilizer\n> Unspecified sections and assumptions are not approved requirements.\n\n` +
+          sections
+            .map(
+              (s) =>
+                `## ${s.title}\n\n` +
+                s.fields
+                  .filter((f) => f[0] !== "name")
+                  .map((f) => `### ${f[1]}\n\n${fieldText(p, f[0])}\n`)
+                  .join("\n"),
+            )
+            .join("\n")
+        );
+      }
+      function taskPackage(task, p = project()) {
+        const reqIds = references(task.text, "REQ");
+        const requirements = entries(p.requirements, "REQ", p).filter((r) =>
+          reqIds.includes(r.id),
+        );
+        const criteria = entries(p.acceptance, "AC", p).filter(
+          (r) =>
+            references(r.text, "REQ").some((id) => reqIds.includes(id)) ||
+            references(r.text, "TASK").includes(task.id),
+        );
+        const dependencies = references(task.text, "TASK").map(
+          (id) =>
+            entries(p.tasks, "TASK", p).find((t) => t.id === id) || {
+              id,
+              text: "Unresolved dependency — clarify before implementation.",
+            },
+        );
+        const format = (rows) =>
+          rows.map((r) => `- **${r.id}** ${r.text}`).join("\n");
+        const contextKeys = [
+          "idea",
+          "scope",
+          "nonGoals",
+          "constraints",
+          "assumptions",
+          "questions",
+          "stack",
+          "data",
+          "interfaces",
+          "security",
+          "quality",
+          "testing",
+          "delivery",
+          "agentRules",
+        ];
+        return (
+          `# ${task.id}: ${task.text.split("|")[0].trim()}\n\nProject: ${p.name || "Untitled project"}\n\n## Task\n${task.text}\n\n## Linked requirements\n${format(requirements) || "_No requirements linked. Add REQ IDs to this task before implementation._"}\n\n## Acceptance checks\n${format(criteria) || "_No linked acceptance criteria. Define task-specific checks before implementation._"}\n\n## Dependencies\n${format(dependencies) || "_No TASK dependencies declared; confirm this task can start independently._"}\n\n## Working agreement\nInspect repository instructions first. Complete this task within the project scope. Resolve blockers before coding. Report changed files, checks actually run, results, and remaining limitations.\n\n` +
+          contextKeys
+            .map((key) => {
+              const title = sections
+                .flatMap((s) => s.fields)
+                .find((f) => f[0] === key)[1];
+              return `## ${title}\n${fieldText(p, key)}\n`;
+            })
+            .join("\n")
+        );
+      }
+      function backlog(p = project()) {
+        return (
+          `# ${p.name || "Untitled project"} — issue backlog\n\n` +
+          (entries(p.tasks, "TASK", p)
+            .map((t) => taskPackage(t, p))
+            .join("\n---\n\n") ||
+            "_No tasks yet. Add deliverables, requirement IDs, dependencies, and verification steps in Plan the build._")
+        );
+      }
+      function handoff(p = project()) {
+        return `# Implementation handoff\n\nYou are implementing the project below.\n\n1. Inspect the repository and its instructions before editing.\n2. Identify unanswered questions and conflicting requirements. Ask about blocking decisions; label any proposed defaults as assumptions.\n3. Implement the smallest useful increment within v1 scope. Respect the explicit non-goals.\n4. Link work to REQ and TASK IDs. Pin reference IDs before creating issues, and preserve them when editing or reordering items.\n5. Verify acceptance criteria and report the checks actually run and their results. Never claim unrun checks passed.\n6. Deliver a reviewable change with documentation, remaining limitations, and next steps.\n\n${specification(p)}`;
+      }
+      function selectedTask() {
+        return entries(project().tasks, "TASK").find(
+          (t) => t.id === $("task-select").value,
+        );
+      }
+      function output() {
+        return {
+          spec: specification,
+          agent: handoff,
+          issues: backlog,
+          review: reviewReport,
+          task: () => {
+            const t = selectedTask();
+            return t
+              ? taskPackage(t)
+              : "_Add an implementation task in Plan the build to create a focused handoff._";
+          },
+        }[$("output-type").value]();
+      }
+      function findings(p = project()) {
+        const results = [];
+        const add = (key, text) => results.push({ key, text });
+        const required = {
+          problem: "Describe the problem and current workaround.",
+          audience: "Identify the primary user.",
+          scope: "Define the first release.",
+          nonGoals: "Set explicit non-goals to prevent scope creep.",
+          success: "Define an observable success measure.",
+          requirements: "Write concrete functional requirements.",
+          acceptance: "Add testable acceptance criteria.",
+          security: "Specify privacy and secret handling.",
+          tasks: "Break implementation into verifiable tasks.",
+          testing: "Describe how completion will be checked.",
+        };
+        for (const [key, text] of Object.entries(required))
+          if (!p[key].trim()) add(key, text);
+        if (p.questions.trim())
+          add("questions", "Resolve or explicitly defer open questions.");
+        if (p.assumptions.trim())
+          add(
+            "assumptions",
+            "Validate assumptions that affect implementation.",
+          );
+        const reqs = entries(p.requirements, "REQ", p),
+          criteria = entries(p.acceptance, "AC", p),
+          tasks = entries(p.tasks, "TASK", p);
+        for (const [key, prefix] of Object.entries(prefixes)) {
+          const rows = entries(p[key], prefix, p);
+          if (rows.some((r) => !r.pinned))
+            add(key, `Pin ${prefix} IDs before linking or reordering items.`);
+          const ids = rows.map((r) => r.id);
+          if (new Set(ids).size !== ids.length)
+            add(
+              key,
+              `Duplicate ${prefix} IDs: assign unique IDs before handing off.`,
+            );
+        }
+        const summarize = (ids) =>
+          ids.slice(0, 5).join(", ") +
+          (ids.length > 5 ? ` (+${ids.length - 5} more)` : "");
+        const uncovered = reqs
+          .filter(
+            (r) =>
+              !criteria.some((c) => references(c.text, "REQ").includes(r.id)),
+          )
+          .map((r) => r.id);
+        if (uncovered.length)
+          add(
+            "acceptance",
+            "Add acceptance checks linked to " + summarize(uncovered) + ".",
+          );
+        const unscheduled = reqs
+          .filter(
+            (r) => !tasks.some((t) => references(t.text, "REQ").includes(r.id)),
+          )
+          .map((r) => r.id);
+        if (unscheduled.length)
+          add(
+            "tasks",
+            "Assign implementation tasks to " + summarize(unscheduled) + ".",
+          );
+        for (const [key, rows] of [
+          ["acceptance", criteria],
+          ["tasks", tasks],
+        ]) {
+          const unknown = [
+            ...new Set(
+              rows
+                .flatMap((r) => references(r.text, "REQ"))
+                .filter((id) => !reqs.some((r) => r.id === id)),
+            ),
+          ];
+          if (unknown.length)
+            add(
+              key,
+              "Unknown requirement references: " + summarize(unknown) + ".",
+            );
+        }
+        const badDeps = tasks
+          .filter((t) =>
+            references(t.text, "TASK").some(
+              (id) => id === t.id || !tasks.some((d) => d.id === id),
+            ),
+          )
+          .map((t) => t.id);
+        if (badDeps.length)
+          add(
+            "tasks",
+            "Fix missing or self-referencing task dependencies in " +
+              summarize(badDeps) +
+              ".",
+          );
+        const graph = new Map(
+          tasks.map((t) => [t.id, references(t.text, "TASK")]),
+        );
+        const visiting = new Set(),
+          done = new Set();
+        function cyclic(id) {
+          if (visiting.has(id)) return true;
+          if (done.has(id)) return false;
+          visiting.add(id);
+          for (const dep of graph.get(id) || [])
+            if (graph.has(dep) && cyclic(dep)) return true;
+          visiting.delete(id);
+          done.add(id);
+          return false;
+        }
+        if ([...graph.keys()].some(cyclic))
+          add(
+            "tasks",
+            "Task dependencies contain a cycle. Break it into an order an agent can execute.",
+          );
+        const noVerify = tasks
+          .filter((t) => !/(?:^|\|)\s*verify:\s*\S/i.test(t.text))
+          .map((t) => t.id);
+        if (noVerify.length)
+          add(
+            "tasks",
+            "Add “| verify: expected result” to " + summarize(noVerify) + ".",
+          );
+        return results;
+      }
+      function gaps(p = project()) {
+        return findings(p).map((f) => f.text);
+      }
+      function reviewReport(p = project()) {
+        return (
+          `# ${p.name || "Untitled project"} — plan review\n\nAutomated structural checks only; human review is still required.\n\n` +
+          (gaps(p)
+            .map((t) => "- [ ] " + t)
+            .join("\n") ||
+            "No structural gaps found. Verify the plan is accurate, feasible, and appropriately scoped.")
+        );
+      }
+      function fillTaskSelect(id, includeFull = false) {
+        const select = $(id),
+          previous = select.value;
+        select.replaceChildren();
+        if (includeFull) {
+          const o = document.createElement("option");
+          o.value = "";
+          o.textContent = "Full project plan";
+          select.append(o);
+        }
+        const tasks = entries(project().tasks, "TASK");
+        for (const task of tasks) {
+          const o = document.createElement("option");
+          o.value = task.id;
+          o.textContent = task.id + " · " + task.text.split("|")[0].trim();
+          select.append(o);
+        }
+        select.value = tasks.some((t) => t.id === previous)
+          ? previous
+          : includeFull
+            ? ""
+            : tasks[0]?.id || "";
+        select.disabled = !includeFull && !tasks.length;
+      }
+      function focusField(key) {
+        sectionIndex = sections.findIndex((s) =>
+          s.fields.some((f) => f[0] === key),
+        );
+        render();
+        $("field-" + key).focus();
+      }
+      function refresh() {
+        const p = project();
+        fillTaskSelect("task-select");
+        $("task-options").classList.toggle(
+          "hidden",
+          $("output-type").value !== "task",
+        );
+        $("publish-task").disabled = !selectedTask();
+        $("preview").textContent = output();
+        const count = keys.filter((k) => p[k].trim()).length,
+          percent = Math.round((count / keys.length) * 100);
+        $("score").textContent = percent + "%";
+        $("progress").style.width = percent + "%";
+        const review = findings();
+        $("review-count").textContent =
+          review.length + (review.length === 1 ? " check" : " checks");
+        $("output-summary").textContent =
+          `${entries(p.requirements, "REQ", p).length} requirements · ${entries(p.tasks, "TASK", p).length} tasks · ${output().length.toLocaleString()} characters`;
+        $("questions").replaceChildren();
+        for (const item of review) {
+          const li = document.createElement("li"),
+            button = document.createElement("button");
+          button.textContent = item.text;
+          button.onclick = () => focusField(item.key);
+          li.append(button);
+          $("questions").append(li);
+        }
+        if (!review.length) {
+          const li = document.createElement("li");
+          li.textContent =
+            "No structural gaps found. Review accuracy, feasibility, and scope before implementation.";
+          $("questions").append(li);
+        }
+      }
+      function render() {
+        list();
+        const s = sections[sectionIndex];
+        $("step").textContent = `Step ${sectionIndex + 1} / ${sections.length}`;
+        $("section-title").textContent = s.title;
+        $("section-description").textContent = s.description;
+        $("section-guide").textContent = s.guide;
+        $("nav").replaceChildren();
+        sections.forEach((s, i) => {
+          const b = document.createElement("button");
+          b.textContent = `0${i + 1}  ${s.title}`;
+          b.classList.toggle("active", i === sectionIndex);
+          b.setAttribute("aria-current", i === sectionIndex ? "step" : "false");
+          b.onclick = () => {
+            sectionIndex = i;
+            render();
+          };
+          $("nav").append(b);
+        });
+        $("fields").replaceChildren();
+        for (const [key, title, hint, type] of s.fields) {
+          const label = document.createElement("label");
+          label.htmlFor = "field-" + key;
+          label.textContent = title;
+          const small = document.createElement("small");
+          small.textContent = hint;
+          label.append(small);
+          const input = document.createElement(
+            type === "input" ? "input" : "textarea",
+          );
+          input.id = "field-" + key;
+          input.value = project()[key];
+          input.dataset.key = key;
+          input.maxLength = FIELD_LIMIT;
+          input.oninput = () => {
+            if (input.value.length > FIELD_LIMIT) {
+              input.value = project()[key];
+              notify(
+                "Each field is limited to 100,000 characters. The previous value was kept.",
+              );
+              return;
+            }
+            project()[key] = input.value;
+            save();
+            if (key === "name") list();
+            refresh();
+          };
+          $("fields").append(label, input);
+        }
+        $("previous").disabled = sectionIndex === 0;
+        $("next").textContent =
+          sectionIndex === sections.length - 1 ? "Copy handoff →" : "Next →";
+        refresh();
+      }
+      function download(content, name, type) {
+        const url = URL.createObjectURL(new Blob([content], { type }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      function slug() {
+        return (
+          (project().name || "project")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")
+            .slice(0, 60) || "project"
+        );
+      }
+      async function copy(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          notify("Copied to clipboard.");
+        } catch {
+          notify(
+            "Clipboard unavailable. Download the Markdown or select the preview text.",
+          );
+        }
+      }
+      $("previous").onclick = () => {
+        sectionIndex--;
+        render();
+      };
+      $("next").onclick = () => {
+        if (sectionIndex === sections.length - 1) copy(handoff());
+        else {
+          sectionIndex++;
+          render();
+        }
+      };
+      $("project-list").onchange = () => {
+        currentId = $("project-list").value;
+        save();
+        render();
+      };
+      $("new-project").onclick = () => {
+        const p = blank();
+        projects.push(p);
+        currentId = p.id;
+        sectionIndex = 0;
+        save();
+        render();
+        $("field-name").focus();
+      };
+      $("delete-project").onclick = () => {
+        if (
+          !confirm(
+            `Delete “${project().name || "Untitled idea"}” from this browser? Export a backup first if you need it.`,
+          )
+        )
+          return;
+        projects = projects.filter((p) => p.id !== currentId);
+        if (!projects.length) projects.push(blank());
+        currentId = projects[0].id;
+        save();
+        render();
+      };
+      $("output-type").onchange = refresh;
+      $("task-select").onchange = refresh;
+      $("duplicate-project").onclick = () => {
+        const p = validateProject(project());
+        p.name = (p.name + " (copy)").slice(0, FIELD_LIMIT);
+        projects.push(p);
+        currentId = p.id;
+        save();
+        render();
+      };
+      $("pin-ids").onclick = () => {
+        try {
+          pinProject(project());
+          save();
+          render();
+          notify(
+            "Reference IDs pinned. Keep the bracketed IDs when editing or reordering.",
+          );
+        } catch (e) {
+          notify(e.message);
+        }
+      };
+      $("download").onclick = () =>
+        download(
+          output(),
+          `${slug()}-${$("output-type").value}.md`,
+          "text/markdown;charset=utf-8",
+        );
+      $("copy").onclick = () => copy(output());
+      $("export-json").onclick = () =>
+        download(
+          JSON.stringify({ version: 1, project: project() }, null, 2),
+          slug() + ".fertilizer.json",
+          "application/json",
+        );
+      $("import-json").onclick = () => $("import-file").click();
+      $("import-file").onchange = async (e) => {
+        try {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > IMPORT_LIMIT)
+            throw Error("Project file must be smaller than 16 MB.");
+          const p = parseBackup(await file.text());
+          projects.push(p);
+          currentId = p.id;
+          save();
+          render();
+          notify("Project imported as a new copy.");
+        } catch (error) {
+          notify(error.message);
+        } finally {
+          e.target.value = "";
+        }
+      };
+      $("discovery").onclick = () =>
+        copy(
+          `Help me refine this project into an implementable specification. Ask focused questions about missing information, scope, acceptance criteria, and risks. Do not invent answers or mark assumptions as facts. Start with the most important unresolved decisions.\n\nReview prompts:\n${
+            gaps()
+              .map((x) => "- " + x)
+              .join("\n") ||
+            "- Check ambiguity and requirement-to-test coverage."
+          }\n\n${specification()}`,
+        );
+      $("example").onclick = () => {
+        const p = {
+          ...blank(),
+          name: "Fertilizer",
+          idea: "A portable workspace to turn rough project ideas into clear specifications and AI agent handoffs.",
+          problem:
+            "Project prompts omit constraints and verification, causing agents to guess and overbuild.",
+          audience: "Solo developers coordinating AI coding agents.",
+          success:
+            "A user can draft a specification, reload it, and export a complete Markdown handoff.",
+          scope:
+            "Guided project specification\nLocal project persistence and JSON backups\nMarkdown specification and agent prompt exports\nGitHub planning issue, repository, and specification PR",
+          nonGoals:
+            "Running agents\nBuilt-in AI generation\nMulti-user synchronization\nPublishing application code from a specification PR",
+          constraints:
+            "One standalone HTML file. No build step, external scripts, or backend.",
+          assumptions:
+            "Users review the specification before publishing or implementing it.",
+          journeys:
+            "1. Create a project.\n2. Define users, scope, requirements, and tests.\n3. Review unanswered questions.\n4. Export a handoff or publish a GitHub planning artifact.",
+          requirements:
+            "Save project edits locally.\nExport specification and handoff as UTF-8 Markdown.\nPublish a specification on a new branch and open a PR.",
+          acceptance:
+            "REQ-001: After editing and reloading, the project text is preserved.\nREQ-002: Unicode and multiline text survive Markdown and JSON exports.\nREQ-003: Base branch is unchanged; the PR contains the reviewed specification.",
+          edgeCases:
+            "Storage unavailable: display unsaved state and allow backups.\nGitHub API failure: show error and any partial artifacts; do not silently retry writes.",
+          design:
+            "Dark green workspace, keyboard accessible controls, responsive layout, plain-text preview.",
+          stack: "HTML, CSS, vanilla JavaScript; GitHub REST API.",
+          data: "Project fields as strings; versioned localStorage workspace; versioned JSON project backup.",
+          interfaces:
+            "GitHub authenticated REST requests over HTTPS. Token exists only in memory.",
+          security:
+            "Never export or persist tokens. Render user content as text. Private repository creation is the default.",
+          quality:
+            "Core drafting and exports work offline in current desktop browsers.",
+          tasks:
+            "Build specification editor | REQ-001 | verify: reload round trip\nBuild export packages | REQ-002 | verify: Unicode round trip\nAdd GitHub specification PR | depends: TASK-002 | REQ-003 | verify: mocked API branch/content/PR sequence",
+          testing:
+            "Browser integration tests for persistence, imports, safe rendering, exports, responsive layout, and GitHub requests.",
+          delivery: "Deliver index.html, README, tests, and a reviewable PR.",
+          agentRules:
+            "Keep the app dependency free. Do not invent answers. Report actual test results.",
+        };
+        pinProject(p);
+        projects.push(p);
+        currentId = p.id;
+        sectionIndex = 0;
+        save();
+        render();
+      };
+      function ghPreview() {
+        const action = $("gh-action").value;
+        $("repo-options").classList.toggle("hidden", action !== "repo");
+        $("pr-options").classList.toggle("hidden", action !== "pr");
+        $("issue-options").classList.toggle("hidden", action !== "issue");
+        const task =
+          action === "issue"
+            ? entries(project().tasks, "TASK").find(
+                (t) => t.id === $("gh-task").value,
+              )
+            : null;
+        $("gh-title").value = task
+          ? `${task.id}: ${task.text.split("|")[0].trim()}`
+          : `${action === "issue" ? "Plan: " : action === "pr" ? "Specification: " : ""}${project().name || "Untitled project"}`;
+        $("gh-payload").value = task ? taskPackage(task) : specification();
+        $("publish").textContent = {
+          issue: task ? "Create task issue" : "Create planning issue",
+          pr: "Create branch and open PR",
+          repo: "Create repository and add specification",
+        }[action];
+        validatePublishUI();
+      }
+      function publishError() {
+        const action = $("gh-action").value,
+          title = $("gh-title").value.trim(),
+          payload = $("gh-payload").value;
+        if (!project().name.trim() || !project().idea.trim() || !title)
+          return "Add a project name, idea, and GitHub title before publishing.";
+        if ((action === "issue" || action === "pr") && title.length > 256)
+          return "GitHub titles must be 256 characters or fewer. Shorten the title before publishing.";
+        if (action === "issue" && payload.length > 65536)
+          return `This issue contains ${payload.length.toLocaleString()} characters; GitHub allows 65,536. Choose a single task, open a specification PR, or download Markdown.`;
+        return "";
+      }
+      function validatePublishUI() {
+        const error = publishError();
+        $("publish-validation").textContent =
+          error ||
+          `${$("gh-payload").value.length.toLocaleString()} characters · review this exact payload before publishing`;
+        $("publish").disabled = busy || !!error;
+      }
+      function openGitHub(taskId = "") {
+        fillTaskSelect("gh-task", true);
+        $("gh-task").value = taskId;
+        if (taskId) $("gh-action").value = "issue";
+        ghPreview();
+        $("github-result").replaceChildren();
+        $("github-dialog").showModal();
+      }
+      $("github-open").onclick = () => openGitHub();
+      $("publish-task").onclick = () => openGitHub($("task-select").value);
+      $("github-close").onclick = () => {
+        if (!busy) $("github-dialog").close();
+      };
+      $("github-dialog").addEventListener("cancel", (event) => {
+        if (busy) event.preventDefault();
+      });
+      $("disconnect").onclick = () => {
+        $("token").value = "";
+        notify("Token cleared.");
+      };
+      $("gh-action").onchange = ghPreview;
+      $("gh-task").onchange = ghPreview;
+      $("gh-title").oninput = validatePublishUI;
+      async function api(path, method = "GET", body) {
+        const token = $("token").value.trim();
+        if (!token) throw Error("Enter a GitHub token first.");
+        let response;
+        try {
+          response = await fetch("https://api.github.com" + path, {
+            method,
+            headers: {
+              Accept: "application/vnd.github+json",
+              Authorization: "Bearer " + token,
+              "X-GitHub-Api-Version": "2022-11-28",
+              ...(body ? { "Content-Type": "application/json" } : {}),
+            },
+            ...(body ? { body: JSON.stringify(body) } : {}),
+          });
+        } catch {
+          throw Error(
+            "Could not reach GitHub. Check your connection and browser network permissions. Review any partial results before retrying.",
+          );
+        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = Error(
+            `GitHub ${response.status}: ${data.message || response.statusText}`,
+          );
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+      function result(text, url) {
+        const p = document.createElement("p");
+        p.textContent = text + " ";
+        if (url && /^https:\/\/github\.com\//.test(url)) {
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = "View on GitHub ↗";
+          p.append(a);
+        }
+        $("github-result").append(p);
+      }
+      function base64(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = "";
+        for (const b of bytes) binary += String.fromCharCode(b);
+        return btoa(binary);
+      }
+      function repoPath(value) {
+        if (
+          !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(value) ||
+          value.split("/").some((x) => x === "." || x === "..")
+        )
+          throw Error("Use an existing repository in owner/repo format.");
+        return "/repos/" + value;
+      }
+      $("publish").onclick = async () => {
+        if (busy) return;
+        const action = $("gh-action").value;
+        const destination = $("gh-repo").value.trim();
+        const title = $("gh-title").value.trim();
+        const payload = $("gh-payload").value;
+        const error = publishError();
+        if (error) {
+          result(error);
+          validatePublishUI();
+          return;
+        }
+        const fingerprint = JSON.stringify([
+          action,
+          destination,
+          title,
+          payload,
+          $("gh-base").value,
+          $("gh-path").value,
+          $("visibility").value,
+        ]);
+        if (published.has(fingerprint)) {
+          result(
+            "This exact action already succeeded in this session. Inspect its GitHub artifact before publishing again.",
+          );
+          return;
+        }
+        busy = true;
+        for (const el of $("github-dialog").querySelectorAll(
+          "button,input,select",
+        ))
+          el.disabled = true;
+        $("github-result").replaceChildren();
+        try {
+          if (action === "repo") {
+            if (
+              !/^[a-zA-Z0-9_.-]+$/.test(destination) ||
+              /^\.{1,2}$/.test(destination)
+            )
+              throw Error(
+                "Enter a new personal repository name, without an owner prefix.",
+              );
+            const repo = await api("/user/repos", "POST", {
+              name: destination,
+              description: project().idea.slice(0, 350),
+              private: $("visibility").value === "private",
+              auto_init: true,
+            });
+            result("Repository created.", repo.html_url);
+            const path = "/repos/" + repo.full_name;
+            await api(path + "/contents/docs/SPECIFICATION.md", "PUT", {
+              message: "Add project specification",
+              content: base64(payload),
+              branch: repo.default_branch,
+            });
+            result(
+              "Specification committed.",
+              repo.html_url +
+                "/blob/" +
+                repo.default_branch +
+                "/docs/SPECIFICATION.md",
+            );
+            $("gh-repo").value = repo.full_name;
+          } else {
+            const path = repoPath(destination);
+            if (action === "issue") {
+              const issue = await api(path + "/issues", "POST", {
+                title,
+                body: payload,
+              });
+              result("Planning issue created.", issue.html_url);
+            } else {
+              const file = $("gh-path").value.trim();
+              if (
+                !file ||
+                file.startsWith("/") ||
+                file.split("/").some((x) => !x || x === "." || x === "..") ||
+                !file.endsWith(".md") ||
+                /[\u0000-\u001f?#\\]/.test(file)
+              )
+                throw Error(
+                  "Use a relative Markdown path such as docs/SPECIFICATION.md.",
+                );
+              const repo = await api(path);
+              const base = $("gh-base").value.trim() || repo.default_branch;
+              const ref = await api(
+                path + "/git/ref/heads/" + encodeURIComponent(base),
+              );
+              const branch = "fertilizer/spec-" + crypto.randomUUID();
+              await api(path + "/git/refs", "POST", {
+                ref: "refs/heads/" + branch,
+                sha: ref.object.sha,
+              });
+              result(
+                "Specification branch created. If a later step fails, inspect this branch before retrying.",
+                "https://github.com/" + destination + "/tree/" + branch,
+              );
+              const encoded = file.split("/").map(encodeURIComponent).join("/");
+              let sha;
+              try {
+                const existing = await api(
+                  path +
+                    "/contents/" +
+                    encoded +
+                    "?ref=" +
+                    encodeURIComponent(branch),
+                );
+                if (!existing.sha || existing.type !== "file")
+                  throw Error("The specification path is not a file.");
+                sha = existing.sha;
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+              await api(path + "/contents/" + encoded, "PUT", {
+                message: "Add reviewed project specification",
+                content: base64(payload),
+                branch,
+                ...(sha ? { sha } : {}),
+              });
+              result("Specification committed on the new branch.");
+              const pr = await api(path + "/pulls", "POST", {
+                title,
+                head: branch,
+                base,
+                body: "Adds the reviewed Fertilizer project specification.\n\nScope: planning document only; application implementation is separate.",
+              });
+              result("Specification PR opened.", pr.html_url);
+            }
+          }
+          published.add(fingerprint);
+        } catch (error) {
+          result(error.message + " No automatic retry was attempted.");
+        } finally {
+          busy = false;
+          for (const el of $("github-dialog").querySelectorAll(
+            "button,input,select",
+          ))
+            el.disabled = false;
+        }
+        validatePublishUI();
+      };
+      loadWorkspace();
+      if (!projects.length) {
+        projects.push(blank());
+        currentId = projects[0].id;
+      }
+      render();
+    </script>
+  </body>
+</html>
