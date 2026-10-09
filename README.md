@@ -12,7 +12,19 @@ python -m http.server 8000
 
 Open http://localhost:8000. Core planning and exports work offline. GitHub publishing requires internet access and a GitHub personal access token. No hosted deployment is needed.
 
+## Simple view and Advanced view
+
+Fertilizer opens in the **Simple view**: plain questions with examples, no jargon, and nothing to format. Answer in your own words and tap **Not sure yet** on any technical question to leave the decision to whoever builds it.
+
+- **What it should do:** list each feature and how you would know it works. Fertilizer writes the requirement, acceptance check, and reference IDs for you.
+- **Build steps:** one button turns every feature into a build step that carries its check. You can reword, remove, or add steps.
+- **What is still missing:** the plan review in everyday language. Tap an item to jump to it; items that need technical edits open the Advanced view for you.
+
+Turn on **Advanced view** (top right) for the full technical fields, ID pinning, and task syntax described below. Both views edit the same project, so you can switch at any time. Checks added in Advanced view are kept and counted in the Simple view.
+
 ## Planning workflow
+
+The steps below describe the Advanced view.
 
 1. **Plant the idea:** problem, users, current workarounds, and success measures.
 2. **Define the boundaries:** v1 scope, non-goals, constraints, assumptions, and unanswered questions.

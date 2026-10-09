@@ -294,6 +294,72 @@
         grid-template-columns: 1fr 1fr;
         gap: 14px;
       }
+      .switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-weight: 500;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .switch input {
+        width: auto;
+        margin: 0;
+      }
+      .q {
+        margin: 26px 0 0;
+      }
+      .q > label {
+        font-size: 17px;
+        margin: 0 0 4px;
+      }
+      .q-hint {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+      .skip {
+        margin-top: 6px;
+        padding: 4px 10px;
+        font-size: 12px;
+        background: transparent;
+        color: var(--muted);
+      }
+      .feature,
+      .step {
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 12px;
+        margin: 10px 0;
+        background: var(--panel);
+      }
+      .feature label {
+        font-size: 13px;
+        margin: 10px 0 4px;
+        color: var(--muted);
+      }
+      .feature label:first-child {
+        margin-top: 0;
+      }
+      .step {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .step > div {
+        flex: 1;
+        min-width: 0;
+      }
+      .step small {
+        display: block;
+        margin-top: 4px;
+      }
+      .note {
+        color: var(--accent);
+        font-size: 13px;
+      }
       @media (max-width: 1100px) {
         .layout {
           grid-template-columns: 210px 1fr;
@@ -344,7 +410,9 @@
         <small>Good ideas deserve a clear plan.</small>
       </div>
       <div class="row">
-        <span id="save-state" class="muted" role="status">Saved locally</span
+        <label class="switch" for="advanced-toggle"
+          ><input type="checkbox" id="advanced-toggle" /> Advanced view</label
+        ><span id="save-state" class="muted" role="status">Saved locally</span
         ><button id="github-open">GitHub ↗</button>
       </div>
     </header>
@@ -373,10 +441,11 @@
         <nav class="nav" aria-label="Specification sections" id="nav"></nav>
         <div class="card">
           <div class="row between">
-            <strong>Coverage</strong><span id="score" class="badge"></span>
+            <strong id="coverage-title">Coverage</strong
+            ><span id="score" class="badge"></span>
           </div>
           <div class="progress"><div id="progress"></div></div>
-          <small
+          <small id="coverage-note"
             >Filled fields show coverage. Review the questions before handing
             off.</small
           >
@@ -406,10 +475,10 @@
         </div>
         <div class="card">
           <div class="row between">
-            <h2>Plan review</h2>
+            <h2 id="review-title">Plan review</h2>
             <span id="review-count" class="badge"></span>
           </div>
-          <p class="muted">
+          <p class="muted" id="review-note">
             Check missing decisions and requirement coverage. These checks are
             guidance, not proof of correctness.
           </p>
@@ -696,6 +765,196 @@
           ],
         },
       ];
+      const UNSURE =
+        "Not sure yet — please suggest options and explain the trade-offs.";
+      const simpleSections = [
+        {
+          title: "Your idea",
+          description:
+            "Tell us what you have in mind, in your own words. There are no wrong answers.",
+          guide:
+            "Think of this as planting a seed: all it needs is what it is and why it matters. Skip anything you are unsure about and come back later.",
+          items: [
+            {
+              key: "name",
+              label: "What is it called?",
+              hint: "A working title is fine. You can change it any time.",
+              example: "Garden Buddy",
+              type: "input",
+            },
+            {
+              key: "idea",
+              label: "What do you want to make?",
+              hint: "A few plain sentences, as if you were telling a friend.",
+              example: "An app that reminds me when each of my plants needs water.",
+            },
+            {
+              key: "problem",
+              label: "What problem does it solve?",
+              hint: "What is annoying or hard today, and how do people cope right now?",
+              example: "I forget to water things and my plants die. I use sticky notes.",
+            },
+            {
+              key: "audience",
+              label: "Who is it for?",
+              hint: "Who will use it, and where or when?",
+              example: "Me and other busy people with houseplants, mostly on their phone.",
+            },
+            {
+              key: "success",
+              label: "How will you know it worked?",
+              hint: "Something you could actually notice or count.",
+              example: "I stop losing plants. Adding a new plant takes under a minute.",
+            },
+          ],
+        },
+        {
+          title: "What it does",
+          description: "Describe what it should do and what using it feels like.",
+          guide:
+            "Keep each feature small. “Remind me to water” is easier to build and check than “Be a complete plant care system”.",
+          items: [
+            { special: "features", keys: ["requirements", "acceptance"] },
+            {
+              key: "journeys",
+              label: "Walk me through someone using it",
+              hint: "Step by step, from wanting something to getting it.",
+              example: "1. Open the app. 2. Tap “Add plant”. 3. Pick how often to water. 4. Get a reminder.",
+            },
+            {
+              key: "scope",
+              label: "What is the smallest version that would still be useful?",
+              hint: "If you had to launch next week, what would be included?",
+              example: "Add plants, set a watering schedule, get a daily reminder.",
+            },
+            {
+              key: "design",
+              label: "How should it look and feel?",
+              hint: "Mood, colors, big or small buttons, who needs to be able to use it.",
+              example: "Calm and simple. Big buttons. Easy to use with one hand.",
+              skip: true,
+            },
+          ],
+        },
+        {
+          title: "Limits and unknowns",
+          description: "Say where the edges are, and what you have not worked out yet.",
+          guide:
+            "Being clear about what is left out helps whoever builds this stay on track. Honest “I don't know” answers are useful.",
+          items: [
+            {
+              key: "nonGoals",
+              label: "What should it NOT do (at least for now)?",
+              hint: "Things that can wait for a later version.",
+              example: "No social features. No payments.",
+            },
+            {
+              key: "constraints",
+              label: "Is there anything it has to work around?",
+              hint: "A deadline, a budget, certain devices, privacy rules, tools you must use.",
+              example: "Free to run. Must work on an older Android phone.",
+            },
+            {
+              key: "assumptions",
+              label: "What are you assuming is true?",
+              hint: "Things you believe but have not checked.",
+              example: "People are happy to get one notification a day.",
+            },
+            {
+              key: "questions",
+              label: "What are you still unsure about?",
+              hint: "Questions that need an answer before building starts.",
+              example: "Should it identify plants from photos?",
+            },
+          ],
+        },
+        {
+          title: "How it behaves",
+          description: "Cover the “what if” moments and the behind-the-scenes needs.",
+          guide:
+            "You do not need technical words here. Plain answers like “on my phone” or “it should remember my plants” are exactly what is needed. Tap “Not sure yet” to leave a decision for the builder.",
+          items: [
+            {
+              key: "edgeCases",
+              label: "What could go wrong, and what should happen then?",
+              hint: "No internet, mistakes, empty screens, running it twice by accident.",
+              example: "No internet: still show my plants and sync later.",
+            },
+            {
+              key: "stack",
+              label: "Where will people use it?",
+              hint: "“On my phone” or “in a web browser” is plenty. Mention any tools you want used, or leave it open.",
+              example: "On my phone, and maybe on a laptop too.",
+              skip: true,
+            },
+            {
+              key: "data",
+              label: "What does it need to remember?",
+              hint: "The information it keeps between visits.",
+              example: "Each plant's name, photo, and when it was last watered.",
+              skip: true,
+            },
+            {
+              key: "interfaces",
+              label: "Does it need to connect to other apps or websites?",
+              hint: "Things like weather, calendars, maps, payments, or sending messages.",
+              example: "Check the weather forecast before reminding me.",
+              skip: true,
+            },
+            {
+              key: "security",
+              label: "Is anything private or sensitive?",
+              hint: "Personal details, photos, passwords, who is allowed to see what.",
+              example: "Photos stay on my phone. No account needed.",
+              skip: true,
+            },
+            {
+              key: "quality",
+              label: "Does it need to be fast, work offline, or be easy for everyone to use?",
+              hint: "Anything it must do reliably.",
+              example: "Opens in under two seconds. Works without internet. Readable text size.",
+              skip: true,
+            },
+          ],
+        },
+        {
+          title: "Getting it built",
+          description: "Turn your ideas into steps, and decide how you will know it is finished.",
+          guide:
+            "The builder can be a person or an AI assistant. When you are done, copy the instructions on the right and hand them over.",
+          items: [
+            { special: "steps", keys: ["tasks"] },
+            {
+              key: "testing",
+              label: "How will you check that everything works?",
+              hint: "What would you try yourself before calling it done?",
+              example: "Add a plant, wait for the reminder, turn off wifi and try again.",
+              skip: true,
+            },
+            {
+              key: "delivery",
+              label: "What should you have when it is finished?",
+              hint: "The finished product, plus anything that comes with it.",
+              example: "A working app and a one-page how-to.",
+              skip: true,
+            },
+            {
+              key: "agentRules",
+              label: "Any ground rules for whoever builds it?",
+              hint: "When to ask you first, what not to touch, how to report back.",
+              example: "Ask before changing anything big. Tell me exactly what you tested.",
+              skip: true,
+            },
+          ],
+        },
+      ];
+      const OUTPUTS = [
+        ["spec", "Project specification", "Full plan"],
+        ["agent", "Implementation handoff", "Instructions for an AI builder"],
+        ["issues", "Issue backlog", "To-do list for GitHub"],
+        ["task", "Single-task handoff", "One build step at a time"],
+        ["review", "Plan review report", "What is still missing"],
+      ];
       const keys = sections.flatMap((s) => s.fields.map((f) => f[0]));
       const $ = (id) => document.getElementById(id);
       const STORAGE = "fertilizer.workspace.v1";
@@ -711,7 +970,10 @@
         storageError = false,
         toastTimer,
         recoveryRaw = null,
-        lastStored = null;
+        lastStored = null,
+        advanced = false,
+        labelMode = null;
+      const ui = { features: { rows: [], extras: [] }, steps: [] };
       const published = new Set();
       function blank() {
         return {
@@ -801,6 +1063,7 @@
           const serialized = JSON.stringify({
             version: 1,
             currentId,
+            advanced,
             projects,
           });
           localStorage.setItem(STORAGE, serialized);
@@ -826,6 +1089,7 @@
             !data.projects.length
           )
             throw Error("Invalid workspace");
+          advanced = data.advanced === true;
           let invalid = 0;
           const seen = new Set();
           for (const candidate of data.projects) {
@@ -1070,27 +1334,63 @@
       }
       function findings(p = project()) {
         const results = [];
-        const add = (key, text) => results.push({ key, text });
+        const add = (key, text, plain, adv = false) =>
+          results.push({ key, text, plain: plain || text, adv });
         const required = {
-          problem: "Describe the problem and current workaround.",
-          audience: "Identify the primary user.",
-          scope: "Define the first release.",
-          nonGoals: "Set explicit non-goals to prevent scope creep.",
-          success: "Define an observable success measure.",
-          requirements: "Write concrete functional requirements.",
-          acceptance: "Add testable acceptance criteria.",
-          security: "Specify privacy and secret handling.",
-          tasks: "Break implementation into verifiable tasks.",
-          testing: "Describe how completion will be checked.",
+          problem: [
+            "Describe the problem and current workaround.",
+            "Say what problem this solves and how people cope today.",
+          ],
+          audience: [
+            "Identify the primary user.",
+            "Say who this is for.",
+          ],
+          scope: [
+            "Define the first release.",
+            "Describe the smallest version that would still be useful.",
+          ],
+          nonGoals: [
+            "Set explicit non-goals to prevent scope creep.",
+            "Say what it should not do, so the project does not keep growing.",
+          ],
+          success: [
+            "Define an observable success measure.",
+            "Describe how you will know it worked.",
+          ],
+          requirements: [
+            "Write concrete functional requirements.",
+            "Add at least one thing it should be able to do.",
+          ],
+          acceptance: [
+            "Add testable acceptance criteria.",
+            "Say how you would check that each feature works.",
+          ],
+          security: [
+            "Specify privacy and secret handling.",
+            "Say whether anything is private or sensitive (or tap “Not sure yet”).",
+          ],
+          tasks: [
+            "Break implementation into verifiable tasks.",
+            "Add build steps. One button creates them from your features.",
+          ],
+          testing: [
+            "Describe how completion will be checked.",
+            "Say how you will check that everything works.",
+          ],
         };
-        for (const [key, text] of Object.entries(required))
-          if (!p[key].trim()) add(key, text);
+        for (const [key, [text, plain]] of Object.entries(required))
+          if (!p[key].trim()) add(key, text, plain);
         if (p.questions.trim())
-          add("questions", "Resolve or explicitly defer open questions.");
+          add(
+            "questions",
+            "Resolve or explicitly defer open questions.",
+            "You still have open questions. Answer them, or decide they can wait.",
+          );
         if (p.assumptions.trim())
           add(
             "assumptions",
             "Validate assumptions that affect implementation.",
+            "Double-check the things you are assuming are true.",
           );
         const reqs = entries(p.requirements, "REQ", p),
           criteria = entries(p.acceptance, "AC", p),
@@ -1098,17 +1398,34 @@
         for (const [key, prefix] of Object.entries(prefixes)) {
           const rows = entries(p[key], prefix, p);
           if (rows.some((r) => !r.pinned))
-            add(key, `Pin ${prefix} IDs before linking or reordering items.`);
+            add(
+              key,
+              `Pin ${prefix} IDs before linking or reordering items.`,
+              "Some items still need reference numbers. Open Advanced view and choose “Pin reference IDs”.",
+              true,
+            );
           const ids = rows.map((r) => r.id);
           if (new Set(ids).size !== ids.length)
             add(
               key,
               `Duplicate ${prefix} IDs: assign unique IDs before handing off.`,
+              "Two items share the same reference number. Fix it in Advanced view.",
+              true,
             );
         }
         const summarize = (ids) =>
           ids.slice(0, 5).join(", ") +
           (ids.length > 5 ? ` (+${ids.length - 5} more)` : "");
+        const named = (ids) => {
+          const names = ids.map((id) => {
+            const text = reqs.find((r) => r.id === id)?.text || id;
+            return "“" + (text.length > 40 ? text.slice(0, 40) + "…" : text) + "”";
+          });
+          return (
+            names.slice(0, 3).join(", ") +
+            (names.length > 3 ? ` and ${names.length - 3} more` : "")
+          );
+        };
         const uncovered = reqs
           .filter(
             (r) =>
@@ -1119,6 +1436,7 @@
           add(
             "acceptance",
             "Add acceptance checks linked to " + summarize(uncovered) + ".",
+            "Say how you would check: " + named(uncovered) + ".",
           );
         const unscheduled = reqs
           .filter(
@@ -1129,6 +1447,7 @@
           add(
             "tasks",
             "Assign implementation tasks to " + summarize(unscheduled) + ".",
+            "No build step yet for: " + named(unscheduled) + ".",
           );
         for (const [key, rows] of [
           ["acceptance", criteria],
@@ -1145,6 +1464,10 @@
             add(
               key,
               "Unknown requirement references: " + summarize(unknown) + ".",
+              "Some checks or steps point to a feature that no longer exists (" +
+                summarize(unknown) +
+                "). Fix it in Advanced view.",
+              true,
             );
         }
         const badDeps = tasks
@@ -1160,6 +1483,10 @@
             "Fix missing or self-referencing task dependencies in " +
               summarize(badDeps) +
               ".",
+            "Some steps wait on a step that does not exist (" +
+              summarize(badDeps) +
+              "). Fix it in Advanced view.",
+            true,
           );
         const graph = new Map(
           tasks.map((t) => [t.id, references(t.text, "TASK")]),
@@ -1180,6 +1507,8 @@
           add(
             "tasks",
             "Task dependencies contain a cycle. Break it into an order an agent can execute.",
+            "Some steps are waiting on each other, so none can start first. Fix it in Advanced view.",
+            true,
           );
         const noVerify = tasks
           .filter((t) => !/(?:^|\|)\s*verify:\s*\S/i.test(t.text))
@@ -1188,6 +1517,10 @@
           add(
             "tasks",
             "Add “| verify: expected result” to " + summarize(noVerify) + ".",
+            noVerify.length === 1
+              ? "One build step does not say how to check it. Add a note after “verify:” in Advanced view."
+              : `${noVerify.length} build steps do not say how to check them. Add a note after “verify:” in Advanced view.`,
+            true,
           );
         return results;
       }
@@ -1197,8 +1530,8 @@
       function reviewReport(p = project()) {
         return (
           `# ${p.name || "Untitled project"} — plan review\n\nAutomated structural checks only; human review is still required.\n\n` +
-          (gaps(p)
-            .map((t) => "- [ ] " + t)
+          (findings(p)
+            .map((f) => "- [ ] " + (advanced ? f.text : f.plain))
             .join("\n") ||
             "No structural gaps found. Verify the plan is accurate, feasible, and appropriately scoped.")
         );
@@ -1227,12 +1560,449 @@
             : tasks[0]?.id || "";
         select.disabled = !includeFull && !tasks.length;
       }
+      const clean = (value) => value.replace(/\s+/g, " ").trim();
+      const noBar = (value) => clean(value).replace(/\|/g, "/");
+      const activeSections = () => (advanced ? sections : simpleSections);
+      const itemKeys = (item) => (Array.isArray(item) ? [item[0]] : item.keys || [item.key]);
+      function mk(tag, props = {}, ...kids) {
+        const node = document.createElement(tag);
+        Object.assign(node, props);
+        node.append(...kids);
+        return node;
+      }
       function focusField(key) {
-        sectionIndex = sections.findIndex((s) =>
-          s.fields.some((f) => f[0] === key),
+        const list = activeSections();
+        sectionIndex = Math.max(
+          0,
+          list.findIndex((s) =>
+            (advanced ? s.fields : s.items).some((f) =>
+              itemKeys(f).includes(key),
+            ),
+          ),
         );
         render();
-        $("field-" + key).focus();
+        const target = $("field-" + key);
+        if (target) target.focus();
+      }
+      function setAdvanced(on) {
+        advanced = on;
+        save();
+        render();
+      }
+      function allocId(counters, prefix, used) {
+        let n = Math.max(
+          counters[prefix] || 1,
+          1,
+          ...[...used].map((id) => Number(id.split("-")[1]) + 1),
+        );
+        let id = `${prefix}-${String(n).padStart(3, "0")}`;
+        while (used.has(id)) id = `${prefix}-${String(++n).padStart(3, "0")}`;
+        used.add(id);
+        counters[prefix] = n + 1;
+        return id;
+      }
+      function ensurePinned(p) {
+        const before = [p.requirements, p.acceptance, p.tasks].join("\u0000");
+        try {
+          pinProject(p);
+        } catch {
+          return;
+        }
+        if ([p.requirements, p.acceptance, p.tasks].join("\u0000") !== before)
+          save();
+      }
+      // Simple view edits requirements, their checks, and build steps as plain rows.
+      // Reference IDs are written for the user so exports and plan review keep working.
+      function loadSimple(p) {
+        const checks = entries(p.acceptance, "AC", p),
+          claimed = new Set();
+        const rows = entries(p.requirements, "REQ", p).map((r) => {
+          const check = checks.find(
+            (c) =>
+              !claimed.has(c.id) &&
+              c.text.startsWith(r.id + ":") &&
+              references(c.text, "REQ").length === 1,
+          );
+          if (check) claimed.add(check.id);
+          return {
+            id: r.id,
+            text: r.text,
+            check: check ? check.text.slice(r.id.length + 1).trim() : "",
+            checkId: check ? check.id : null,
+          };
+        });
+        ui.features = {
+          rows,
+          extras: checks.filter((c) => !claimed.has(c.id)),
+        };
+        ui.steps = entries(p.tasks, "TASK", p).map((t) => {
+          const bar = t.text.indexOf("|");
+          return {
+            id: t.id,
+            title: (bar < 0 ? t.text : t.text.slice(0, bar)).trim(),
+            rest: bar < 0 ? "" : t.text.slice(bar).trim(),
+          };
+        });
+      }
+      function commitFeatures() {
+        const p = project(),
+          { rows, extras } = ui.features,
+          counters = { ...p.nextIds };
+        const live = rows.filter((r) => clean(r.text));
+        const usedReq = new Set(live.filter((r) => r.id).map((r) => r.id));
+        const usedAc = new Set([
+          ...extras.map((e) => e.id),
+          ...rows.filter((r) => r.checkId).map((r) => r.checkId),
+        ]);
+        const reqLines = [],
+          acLines = extras.map((e) => `[${e.id}] ${e.text}`),
+          assigned = [];
+        for (const r of live) {
+          const id = r.id || allocId(counters, "REQ", usedReq),
+            check = clean(r.check);
+          const checkId = check
+            ? r.checkId || allocId(counters, "AC", usedAc)
+            : null;
+          reqLines.push(`[${id}] ${clean(r.text)}`);
+          if (check) acLines.push(`[${checkId}] ${id}: ${check}`);
+          assigned.push([r, id, checkId]);
+        }
+        const requirements = reqLines.join("\n"),
+          acceptance = acLines.join("\n");
+        if (requirements.length > FIELD_LIMIT || acceptance.length > FIELD_LIMIT) {
+          notify("That list is too long to save. The last change was undone.");
+          return false;
+        }
+        for (const [r, id, checkId] of assigned) {
+          r.id = id;
+          r.checkId = checkId;
+        }
+        Object.assign(p, { requirements, acceptance, nextIds: counters });
+        save();
+        return true;
+      }
+      function commitSteps() {
+        const p = project(),
+          counters = { ...p.nextIds };
+        const live = ui.steps.filter((t) => noBar(t.title));
+        const used = new Set(live.filter((t) => t.id).map((t) => t.id));
+        const ids = live.map((t) => t.id || allocId(counters, "TASK", used));
+        const tasks = live
+          .map(
+            (t, i) =>
+              `[${ids[i]}] ${noBar(t.title)}${t.rest ? " " + t.rest : ""}`,
+          )
+          .join("\n");
+        if (tasks.length > FIELD_LIMIT) {
+          notify("That list is too long to save. The last change was undone.");
+          return false;
+        }
+        live.forEach((t, i) => (t.id = ids[i]));
+        Object.assign(p, { tasks, nextIds: counters });
+        save();
+        return true;
+      }
+      function featuresWithoutSteps() {
+        const p = project(),
+          tasks = entries(p.tasks, "TASK", p);
+        return entries(p.requirements, "REQ", p).filter(
+          (r) => !tasks.some((t) => references(t.text, "REQ").includes(r.id)),
+        );
+      }
+      function createSteps() {
+        for (const r of featuresWithoutSteps()) {
+          const row = ui.features.rows.find((f) => f.id === r.id);
+          ui.steps.push({
+            id: null,
+            title: "Build: " + noBar(r.text),
+            rest: `| ${r.id} | verify: ${noBar(row?.check || "") || "It works as described"}`,
+          });
+        }
+        if (commitSteps()) {
+          drawFields();
+          refresh();
+        }
+      }
+      function fieldInput(key, type, placeholder) {
+        const input = document.createElement(
+          type === "input" ? "input" : "textarea",
+        );
+        input.id = "field-" + key;
+        input.value = project()[key];
+        input.dataset.key = key;
+        input.maxLength = FIELD_LIMIT;
+        if (placeholder) input.placeholder = placeholder;
+        input.oninput = () => {
+          if (input.value.length > FIELD_LIMIT) {
+            input.value = project()[key];
+            notify(
+              "Each field is limited to 100,000 characters. The previous value was kept.",
+            );
+            return;
+          }
+          project()[key] = input.value;
+          save();
+          if (key === "name") list();
+          refresh();
+        };
+        return input;
+      }
+      function drawQuestion(item) {
+        const input = fieldInput(
+          item.key,
+          item.type,
+          item.example ? "e.g. " + item.example : "",
+        );
+        const box = mk(
+          "div",
+          { className: "q" },
+          mk("label", { htmlFor: "field-" + item.key, textContent: item.label }),
+          mk("p", { className: "q-hint", textContent: item.hint }),
+          input,
+        );
+        if (item.skip)
+          box.append(
+            mk("button", {
+              type: "button",
+              className: "skip",
+              textContent: "Not sure yet",
+              onclick: () => {
+                if (input.value.trim()) return;
+                input.value = UNSURE;
+                input.oninput();
+              },
+            }),
+          );
+        return box;
+      }
+      function drawFeatures() {
+        const rows = ui.features.rows;
+        if (!rows.length) rows.push({ id: null, text: "", check: "", checkId: null });
+        const box = mk(
+          "div",
+          { className: "q" },
+          mk("strong", { textContent: "What should it be able to do?" }),
+          mk("p", {
+            className: "q-hint",
+            textContent:
+              "Add one thing at a time. For each, say how you would check that it works.",
+          }),
+        );
+        const bind = (input, row, field) => {
+          input.oninput = () => {
+            const previous = row[field];
+            row[field] = input.value;
+            if (!commitFeatures()) {
+              row[field] = previous;
+              input.value = previous;
+              return;
+            }
+            refresh();
+          };
+        };
+        rows.forEach((row, i) => {
+          const doId = i ? "feature-do-" + i : "field-requirements",
+            checkId = i ? "feature-check-" + i : "field-acceptance";
+          const doInput = mk("input", {
+            id: doId,
+            value: row.text,
+            maxLength: 500,
+            placeholder: "e.g. Remind me when a plant needs water",
+          });
+          const checkInput = mk("input", {
+            id: checkId,
+            value: row.check,
+            maxLength: 500,
+            placeholder: "e.g. I get a notification on the day it is due",
+          });
+          bind(doInput, row, "text");
+          bind(checkInput, row, "check");
+          box.append(
+            mk(
+              "div",
+              { className: "feature" },
+              mk("label", { htmlFor: doId, textContent: "It should…" }),
+              doInput,
+              mk("label", { htmlFor: checkId, textContent: "I will know it works when…" }),
+              checkInput,
+              mk("button", {
+                type: "button",
+                className: "skip",
+                textContent: "Remove",
+                onclick: () => {
+                  rows.splice(i, 1);
+                  if (commitFeatures()) {
+                    drawFields();
+                    refresh();
+                  } else rows.splice(i, 0, row);
+                },
+              }),
+            ),
+          );
+        });
+        if (ui.features.extras.length)
+          box.append(
+            mk("p", {
+              className: "note",
+              textContent: `${ui.features.extras.length} more ${ui.features.extras.length === 1 ? "check was" : "checks were"} added in Advanced view. They are kept and included in your plan.`,
+            }),
+          );
+        box.append(
+          mk("button", {
+            type: "button",
+            textContent: "+ Add another thing it should do",
+            onclick: () => {
+              rows.push({ id: null, text: "", check: "", checkId: null });
+              drawFields();
+              $("feature-do-" + (rows.length - 1)).focus();
+            },
+          }),
+        );
+        return box;
+      }
+      function drawSteps() {
+        const box = mk("div", { className: "q", id: "field-tasks", tabIndex: -1 });
+        const missing = featuresWithoutSteps();
+        box.append(
+          mk("strong", { textContent: "What are the steps to build it?" }),
+          mk("p", {
+            className: "q-hint",
+            textContent: ui.features.rows.some((r) => clean(r.text))
+              ? "Each thing it should do becomes a step, with the check you wrote. You can reword steps or add your own."
+              : "Go back to “What it does” and list what it should do first. Steps are created from that list.",
+          }),
+        );
+        const make = mk("button", {
+          type: "button",
+          className: "primary",
+          textContent: missing.length
+            ? `Create steps for ${missing.length} ${missing.length === 1 ? "feature" : "features"}`
+            : "Every feature has a step",
+          onclick: createSteps,
+        });
+        make.disabled = !missing.length;
+        box.append(make);
+        const features = new Map(ui.features.rows.map((r) => [r.id, r.text]));
+        ui.steps.forEach((step, i) => {
+          const linked = (step.rest.match(/REQ-\d{3,9}/g) || [])
+            .map((id) => features.get(id))
+            .filter(Boolean);
+          const check = step.rest.match(/verify:\s*(.*)$/i);
+          const details = [
+            linked.length ? "For: " + linked.join(", ") : "",
+            check ? "Check: " + check[1] : "",
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          const input = mk("input", {
+            value: step.title,
+            maxLength: 500,
+            placeholder: "Describe this step",
+          });
+          input.setAttribute("aria-label", "Build step " + (i + 1));
+          input.oninput = () => {
+            const previous = step.title;
+            step.title = input.value;
+            if (!commitSteps()) {
+              step.title = previous;
+              input.value = previous;
+              return;
+            }
+            refresh();
+          };
+          box.append(
+            mk(
+              "div",
+              { className: "step" },
+              mk("div", {}, input, details ? mk("small", { textContent: details }) : ""),
+              mk("button", {
+                type: "button",
+                className: "skip",
+                textContent: "Remove",
+                onclick: () => {
+                  ui.steps.splice(i, 1);
+                  if (commitSteps()) {
+                    drawFields();
+                    refresh();
+                  } else ui.steps.splice(i, 0, step);
+                },
+              }),
+            ),
+          );
+        });
+        box.append(
+          mk("button", {
+            type: "button",
+            textContent: "+ Add a step of my own",
+            onclick: () => {
+              ui.steps.push({
+                id: null,
+                title: "",
+                rest: "| verify: Check that this step works as described",
+              });
+              drawFields();
+              const inputs = $("fields").querySelectorAll("#field-tasks .step input");
+              if (inputs.length) inputs[inputs.length - 1].focus();
+            },
+          }),
+        );
+        return box;
+      }
+      function drawFields() {
+        $("fields").replaceChildren();
+        const s = activeSections()[sectionIndex];
+        if (advanced) {
+          for (const [key, title, hint, type] of s.fields) {
+            const label = document.createElement("label");
+            label.htmlFor = "field-" + key;
+            label.textContent = title;
+            const small = document.createElement("small");
+            small.textContent = hint;
+            label.append(small);
+            $("fields").append(label, fieldInput(key, type));
+          }
+          return;
+        }
+        for (const item of s.items)
+          $("fields").append(
+            item.special === "features"
+              ? drawFeatures()
+              : item.special === "steps"
+                ? drawSteps()
+                : drawQuestion(item),
+          );
+      }
+      function applyMode() {
+        const simple = !advanced;
+        $("advanced-toggle").checked = advanced;
+        $("pin-ids").classList.toggle("hidden", simple);
+        $("coverage-title").textContent = simple
+          ? "How complete is your plan?"
+          : "Coverage";
+        $("coverage-note").textContent = simple
+          ? "Skipping questions is fine. The more you answer, the clearer your plan."
+          : "Filled fields show coverage. Review the questions before handing off.";
+        $("review-title").textContent = simple
+          ? "What is still missing?"
+          : "Plan review";
+        $("review-note").textContent = simple
+          ? "Tap anything below to jump straight to it. These are friendly nudges, not rules."
+          : "Check missing decisions and requirement coverage. These checks are guidance, not proof of correctness.";
+        $("discovery").textContent = simple
+          ? "Ask an AI to help fill the gaps"
+          : "Copy discovery prompt";
+        $("download").textContent = simple ? "Download my plan" : "Download .md";
+        if (labelMode !== advanced) {
+          labelMode = advanced;
+          const select = $("output-type"),
+            current = select.value;
+          select.replaceChildren(
+            ...OUTPUTS.map(([value, technical, plain]) =>
+              mk("option", { value, textContent: advanced ? technical : plain }),
+            ),
+          );
+          select.value = current;
+        }
       }
       function refresh() {
         const p = project();
@@ -1249,34 +2019,55 @@
         $("progress").style.width = percent + "%";
         const review = findings();
         $("review-count").textContent =
-          review.length + (review.length === 1 ? " check" : " checks");
-        $("output-summary").textContent =
-          `${entries(p.requirements, "REQ", p).length} requirements · ${entries(p.tasks, "TASK", p).length} tasks · ${output().length.toLocaleString()} characters`;
+          review.length +
+          (advanced
+            ? review.length === 1
+              ? " check"
+              : " checks"
+            : review.length === 1
+              ? " thing"
+              : " things");
+        const nReq = entries(p.requirements, "REQ", p).length,
+          nTask = entries(p.tasks, "TASK", p).length;
+        $("output-summary").textContent = advanced
+          ? `${nReq} requirements · ${nTask} tasks · ${output().length.toLocaleString()} characters`
+          : `${nReq} ${nReq === 1 ? "feature" : "features"} · ${nTask} build ${nTask === 1 ? "step" : "steps"} · ${output().length.toLocaleString()} characters`;
         $("questions").replaceChildren();
         for (const item of review) {
           const li = document.createElement("li"),
             button = document.createElement("button");
-          button.textContent = item.text;
-          button.onclick = () => focusField(item.key);
+          button.textContent = advanced ? item.text : item.plain;
+          button.onclick = () => {
+            if (item.adv && !advanced) setAdvanced(true);
+            focusField(item.key);
+          };
           li.append(button);
           $("questions").append(li);
         }
         if (!review.length) {
           const li = document.createElement("li");
-          li.textContent =
-            "No structural gaps found. Review accuracy, feasibility, and scope before implementation.";
+          li.textContent = advanced
+            ? "No structural gaps found. Review accuracy, feasibility, and scope before implementation."
+            : "Nothing is missing. Read it over once more, then hand it off.";
           $("questions").append(li);
         }
       }
       function render() {
         list();
-        const s = sections[sectionIndex];
-        $("step").textContent = `Step ${sectionIndex + 1} / ${sections.length}`;
+        if (!advanced) {
+          ensurePinned(project());
+          loadSimple(project());
+        }
+        applyMode();
+        const list_ = activeSections();
+        sectionIndex = Math.min(sectionIndex, list_.length - 1);
+        const s = list_[sectionIndex];
+        $("step").textContent = `Step ${sectionIndex + 1} / ${list_.length}`;
         $("section-title").textContent = s.title;
         $("section-description").textContent = s.description;
         $("section-guide").textContent = s.guide;
         $("nav").replaceChildren();
-        sections.forEach((s, i) => {
+        list_.forEach((s, i) => {
           const b = document.createElement("button");
           b.textContent = `0${i + 1}  ${s.title}`;
           b.classList.toggle("active", i === sectionIndex);
@@ -1287,39 +2078,14 @@
           };
           $("nav").append(b);
         });
-        $("fields").replaceChildren();
-        for (const [key, title, hint, type] of s.fields) {
-          const label = document.createElement("label");
-          label.htmlFor = "field-" + key;
-          label.textContent = title;
-          const small = document.createElement("small");
-          small.textContent = hint;
-          label.append(small);
-          const input = document.createElement(
-            type === "input" ? "input" : "textarea",
-          );
-          input.id = "field-" + key;
-          input.value = project()[key];
-          input.dataset.key = key;
-          input.maxLength = FIELD_LIMIT;
-          input.oninput = () => {
-            if (input.value.length > FIELD_LIMIT) {
-              input.value = project()[key];
-              notify(
-                "Each field is limited to 100,000 characters. The previous value was kept.",
-              );
-              return;
-            }
-            project()[key] = input.value;
-            save();
-            if (key === "name") list();
-            refresh();
-          };
-          $("fields").append(label, input);
-        }
+        drawFields();
         $("previous").disabled = sectionIndex === 0;
         $("next").textContent =
-          sectionIndex === sections.length - 1 ? "Copy handoff →" : "Next →";
+          sectionIndex === list_.length - 1
+            ? advanced
+              ? "Copy handoff →"
+              : "Copy instructions for an AI builder →"
+            : "Next →";
         refresh();
       }
       function download(content, name, type) {
@@ -1354,7 +2120,7 @@
         render();
       };
       $("next").onclick = () => {
-        if (sectionIndex === sections.length - 1) copy(handoff());
+        if (sectionIndex === activeSections().length - 1) copy(handoff());
         else {
           sectionIndex++;
           render();
@@ -1387,6 +2153,8 @@
         save();
         render();
       };
+      $("advanced-toggle").onchange = () =>
+        setAdvanced($("advanced-toggle").checked);
       $("output-type").onchange = refresh;
       $("task-select").onchange = refresh;
       $("duplicate-project").onclick = () => {
