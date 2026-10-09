@@ -314,7 +314,47 @@ const path = require("node:path");
     await simplePage.evaluate(() => project().tasks),
     /^\[TASK-001\] Build the reminder \| REQ-001 \| verify: I get a daily notice/,
   );
-  await simplePage.locator("main .feature .skip, main .step .skip").first().waitFor();
+  // Generated steps follow edits to their feature; reworded steps are left alone.
+  await simplePage.locator("#advanced-toggle").check();
+  await simplePage.locator("#advanced-toggle").uncheck();
+  assert.match(await simplePage.locator("#section-title").innerText(), /Getting it built/);
+  await simplePage.locator("#nav button").nth(1).click();
+  await simplePage.locator("#feature-do-1").fill("Track every plant");
+  await simplePage.locator("#feature-check-1").fill("Each plant has a card");
+  assert.match(
+    await simplePage.evaluate(() => project().tasks),
+    /\[TASK-002\] Build: Track every plant \| REQ-002 \| verify: Each plant has a card/,
+  );
+  await simplePage.locator("#field-requirements").fill("Remind me daily");
+  assert.match(
+    await simplePage.evaluate(() => project().tasks),
+    /\[TASK-001\] Build the reminder \| REQ-001/,
+  );
+  await simplePage.locator("#nav button").nth(4).click();
+  assert.equal(
+    await simplePage.getByRole("button", { name: /^Remove step 1/ }).count(),
+    1,
+  );
+  assert.equal(
+    await simplePage.getByRole("button", { name: /^Not sure yet: How will you check/ }).count(),
+    1,
+  );
+  // Counters at the parser's limit report exhaustion instead of writing unparseable IDs.
+  const overflow = await simplePage.evaluate(() => {
+    project().nextIds.REQ = 1000000000;
+    project().requirements += "\nUnpinned item";
+    try {
+      pinProject(project());
+      return "pinned";
+    } catch (e) {
+      return e.message;
+    }
+  });
+  assert.match(overflow, /Too many items/);
+  await simplePage.evaluate(() => {
+    project().nextIds.REQ = 5;
+    project().requirements = project().requirements.replace("\nUnpinned item", "");
+  });
   await simplePage.getByRole("button", { name: "Not sure yet" }).first().click();
   assert.match(
     await simplePage.locator("#field-testing").inputValue(),

@@ -961,6 +961,7 @@
       const FIELD_LIMIT = 100000,
         IMPORT_LIMIT = 16000000;
       const prefixes = { requirements: "REQ", acceptance: "AC", tasks: "TASK" };
+      const MAX_ID = 999999999;
       const isObject = (value) =>
         value !== null && typeof value === "object" && !Array.isArray(value);
       let projects = [],
@@ -1206,6 +1207,7 @@
               .map((r) => Number(r.id.split("-")[1])),
           );
           let next = Math.max(counters[prefix] || 1, max + 1);
+          if (next > MAX_ID) throw Error("Too many items to number. Remove some first.");
           updates[key] = rows
             .map(
               (r) =>
@@ -1566,7 +1568,9 @@
       const itemKeys = (item) => (Array.isArray(item) ? [item[0]] : item.keys || [item.key]);
       function mk(tag, props = {}, ...kids) {
         const node = document.createElement(tag);
-        Object.assign(node, props);
+        const { ariaLabel, ...rest } = props;
+        Object.assign(node, rest);
+        if (ariaLabel) node.setAttribute("aria-label", ariaLabel);
         node.append(...kids);
         return node;
       }
@@ -1585,7 +1589,15 @@
         if (target) target.focus();
       }
       function setAdvanced(on) {
+        const current = activeSections()[sectionIndex],
+          first = advanced ? current.fields[0] : current.items[0];
         advanced = on;
+        const target = activeSections().findIndex((s) =>
+          (advanced ? s.fields : s.items).some((f) =>
+            itemKeys(f).includes(itemKeys(first)[0]),
+          ),
+        );
+        if (target >= 0) sectionIndex = target;
         save();
         render();
       }
@@ -1597,6 +1609,7 @@
         );
         let id = `${prefix}-${String(n).padStart(3, "0")}`;
         while (used.has(id)) id = `${prefix}-${String(++n).padStart(3, "0")}`;
+        if (n > MAX_ID) throw Error("Too many items to number. Remove some first.");
         used.add(id);
         counters[prefix] = n + 1;
         return id;
@@ -1645,6 +1658,22 @@
         });
       }
       function commitFeatures() {
+        try {
+          return writeFeatures();
+        } catch (error) {
+          notify(error.message);
+          return false;
+        }
+      }
+      function commitSteps() {
+        try {
+          return writeSteps();
+        } catch (error) {
+          notify(error.message);
+          return false;
+        }
+      }
+      function writeFeatures() {
         const p = project(),
           { rows, extras } = ui.features,
           counters = { ...p.nextIds };
@@ -1681,7 +1710,7 @@
         save();
         return true;
       }
-      function commitSteps() {
+      function writeSteps() {
         const p = project(),
           counters = { ...p.nextIds };
         const live = ui.steps.filter((t) => noBar(t.title));
@@ -1709,13 +1738,23 @@
           (r) => !tasks.some((t) => references(t.text, "REQ").includes(r.id)),
         );
       }
+      const stepTitle = (row) => "Build: " + noBar(row.text);
+      const stepRest = (row) =>
+        `| ${row.id} | verify: ${noBar(row.check || "") || "It works as described"}`;
+      // Steps still matching what Fertilizer generated follow later edits; reworded steps are left alone.
+      const generatedSteps = (row) =>
+        row.id
+          ? ui.steps.filter(
+              (t) => t.id && t.title === stepTitle(row) && t.rest === stepRest(row),
+            )
+          : [];
       function createSteps() {
         for (const r of featuresWithoutSteps()) {
           const row = ui.features.rows.find((f) => f.id === r.id);
           ui.steps.push({
             id: null,
-            title: "Build: " + noBar(r.text),
-            rest: `| ${r.id} | verify: ${noBar(row?.check || "") || "It works as described"}`,
+            title: stepTitle({ text: r.text }),
+            rest: stepRest({ id: r.id, check: row?.check }),
           });
         }
         if (commitSteps()) {
@@ -1766,6 +1805,7 @@
               type: "button",
               className: "skip",
               textContent: "Not sure yet",
+              ariaLabel: "Not sure yet: " + item.label,
               onclick: () => {
                 if (input.value.trim()) return;
                 input.value = UNSURE;
@@ -1790,12 +1830,20 @@
         );
         const bind = (input, row, field) => {
           input.oninput = () => {
-            const previous = row[field];
+            const previous = row[field],
+              followers = generatedSteps(row);
             row[field] = input.value;
             if (!commitFeatures()) {
               row[field] = previous;
               input.value = previous;
               return;
+            }
+            if (followers.length && clean(row.text)) {
+              followers.forEach((t) => {
+                t.title = stepTitle(row);
+                t.rest = stepRest(row);
+              });
+              commitSteps();
             }
             refresh();
           };
@@ -1829,6 +1877,7 @@
                 type: "button",
                 className: "skip",
                 textContent: "Remove",
+                ariaLabel: `Remove feature ${i + 1}${row.text ? ": " + row.text : ""}`,
                 onclick: () => {
                   rows.splice(i, 1);
                   if (commitFeatures()) {
@@ -1919,6 +1968,7 @@
                 type: "button",
                 className: "skip",
                 textContent: "Remove",
+                ariaLabel: `Remove step ${i + 1}${step.title ? ": " + step.title : ""}`,
                 onclick: () => {
                   ui.steps.splice(i, 1);
                   if (commitSteps()) {
