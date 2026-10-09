@@ -20,6 +20,8 @@ const path = require("node:path");
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("file://" + path.resolve(__dirname, "../index.html"));
   await page.locator("#example").click();
+  // The technical flows below exercise the Advanced view; the Simple view is covered separately.
+  await page.locator("#advanced-toggle").check();
   await page
     .locator("#field-name")
     .fill("Garden 🌱 <img src=x onerror=alert(1)>");
@@ -265,6 +267,114 @@ const path = require("node:path");
     await page.locator("#recovery-message").innerText(),
     /Another tab/,
   );
+
+  // Simple view: plain-language questions, no IDs to type, structure built behind the scenes.
+  await page.evaluate(() => {
+    localStorage.clear();
+  });
+  const simplePage = await browser.newPage();
+  const simpleErrors = [];
+  simplePage.on("pageerror", (e) => simpleErrors.push(e.message));
+  await simplePage.goto("file://" + path.resolve(__dirname, "../index.html"));
+  assert(!(await simplePage.locator("#advanced-toggle").isChecked()));
+  assert.match(await simplePage.locator("#nav").innerText(), /Your idea/);
+  assert.doesNotMatch(
+    await simplePage.locator("main").innerText(),
+    /Acceptance|REQ-|APIs|Stack/,
+  );
+  await simplePage.locator("#field-name").fill("Garden Buddy");
+  await simplePage.locator("#field-idea").fill("Remind me to water plants");
+  await simplePage.locator("#next").click();
+  await simplePage.locator("#field-requirements").fill("Remind me to water");
+  await simplePage.locator("#field-acceptance").fill("I get a daily notice");
+  await simplePage.getByText("+ Add another thing it should do").click();
+  await simplePage.locator("#feature-do-1").fill("Track each plant");
+  const spec = await simplePage.evaluate(() => ({
+    req: project().requirements,
+    ac: project().acceptance,
+  }));
+  assert.equal(spec.req, "[REQ-001] Remind me to water\n[REQ-002] Track each plant");
+  assert.equal(spec.ac, "[AC-001] REQ-001: I get a daily notice");
+  await simplePage.locator("#output-type").selectOption("review");
+  assert.match(
+    await simplePage.locator("#preview").innerText(),
+    /No build step yet for: “Remind me to water”/,
+  );
+  await simplePage
+    .locator("#questions button")
+    .filter({ hasText: "No build step yet" })
+    .click();
+  await simplePage.getByRole("button", { name: /Create steps for 2 features/ }).click();
+  assert.equal(
+    await simplePage.evaluate(() => project().tasks),
+    "[TASK-001] Build: Remind me to water | REQ-001 | verify: I get a daily notice\n[TASK-002] Build: Track each plant | REQ-002 | verify: It works as described",
+  );
+  await simplePage.locator(".step input").first().fill("Build the reminder");
+  assert.match(
+    await simplePage.evaluate(() => project().tasks),
+    /^\[TASK-001\] Build the reminder \| REQ-001 \| verify: I get a daily notice/,
+  );
+  // Generated steps follow edits to their feature; reworded steps are left alone.
+  await simplePage.locator("#advanced-toggle").check();
+  await simplePage.locator("#advanced-toggle").uncheck();
+  assert.match(await simplePage.locator("#section-title").innerText(), /Getting it built/);
+  await simplePage.locator("#nav button").nth(1).click();
+  await simplePage.locator("#feature-do-1").fill("Track every plant");
+  await simplePage.locator("#feature-check-1").fill("Each plant has a card");
+  assert.match(
+    await simplePage.evaluate(() => project().tasks),
+    /\[TASK-002\] Build: Track every plant \| REQ-002 \| verify: Each plant has a card/,
+  );
+  await simplePage.locator("#field-requirements").fill("Remind me daily");
+  assert.match(
+    await simplePage.evaluate(() => project().tasks),
+    /\[TASK-001\] Build the reminder \| REQ-001/,
+  );
+  await simplePage.locator("#nav button").nth(4).click();
+  assert.equal(
+    await simplePage.getByRole("button", { name: /^Remove step 1/ }).count(),
+    1,
+  );
+  assert.equal(
+    await simplePage.getByRole("button", { name: /^Not sure yet: How will you check/ }).count(),
+    1,
+  );
+  // Counters at the parser's limit report exhaustion instead of writing unparseable IDs.
+  const overflow = await simplePage.evaluate(() => {
+    project().nextIds.REQ = 1000000000;
+    project().requirements += "\nUnpinned item";
+    try {
+      pinProject(project());
+      return "pinned";
+    } catch (e) {
+      return e.message;
+    }
+  });
+  assert.match(overflow, /Too many items/);
+  await simplePage.evaluate(() => {
+    project().nextIds.REQ = 5;
+    project().requirements = project().requirements.replace("\nUnpinned item", "");
+  });
+  await simplePage.getByRole("button", { name: "Not sure yet" }).first().click();
+  assert.match(
+    await simplePage.locator("#field-testing").inputValue(),
+    /^Not sure yet/,
+  );
+  // Mode choice persists, and Advanced edits survive a return to the Simple view.
+  await simplePage.locator("#advanced-toggle").check();
+  await simplePage.reload();
+  assert(await simplePage.locator("#advanced-toggle").isChecked());
+  await simplePage.evaluate(() => {
+    project().acceptance += "\n[AC-009] Works offline";
+    save();
+  });
+  await simplePage.locator("#advanced-toggle").uncheck();
+  await simplePage.locator("#nav button").nth(1).click();
+  assert.match(await simplePage.locator("main").innerText(), /1 more check was added in Advanced view/);
+  await simplePage.locator("#field-requirements").fill("Remind me to water daily");
+  assert.match(await simplePage.evaluate(() => project().acceptance), /\[AC-009\] Works offline/);
+  assert.deepEqual(simpleErrors, []);
+  await simplePage.close();
 
   await page.setViewportSize({ width: 390, height: 844 });
   assert(
